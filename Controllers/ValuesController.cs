@@ -14,7 +14,7 @@ namespace BTBaseWebAPI.Controllers
         public IEnumerable<string> Get()
         {
             
-            return new string[] { Environment.GetEnvironmentVariable("MYSQL_VERSION"), Environment.GetEnvironmentVariable("MYSQL_PREFIX") };
+            return new string[] { Environment.GetEnvironmentVariable("database-name"), Environment.GetEnvironmentVariable("database-user") };
         }
 
         // GET api/values/5
