@@ -28,7 +28,7 @@ namespace BTBaseWebAPI
                 }
             }
 
-            return WebHost.CreateDefaultBuilder(args)
+            return WebHost.CreateDefaultBuilder()
                 .UseConfiguration(config.Build())
                 .UseStartup<Startup>()
                 .Build();
