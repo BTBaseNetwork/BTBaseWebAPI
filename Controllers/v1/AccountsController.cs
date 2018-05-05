@@ -12,13 +12,19 @@ namespace BTBaseWebAPI.Controllers
         [HttpPost]
         public void Rigist(string username, string password)
         {
-
+            var newAccount = new BTAccount
+            {
+                UserName = username,
+                Nick = username,
+                Password = password,
+            };
+            
         }
 
         [HttpGet("Username")]
         public void CheckUsernameAvaiable(string username)
         {
-            
+
         }
 
         [HttpPut("NickName")]

@@ -6,40 +6,14 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace BTBaseWebAPI.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api")]
     public class ValuesController : Controller
     {
         // GET api/values
         [HttpGet]
-        public IEnumerable<string> Get()
+        public string Get()
         {
-            
-            return new string[] { Environment.GetEnvironmentVariable("database-name"), Environment.GetEnvironmentVariable("database-user") };
-        }
-
-        // GET api/values/5
-        [HttpGet("{id}")]
-        public string Get(int id)
-        {
-            return "value";
-        }
-
-        // POST api/values
-        [HttpPost]
-        public void Post([FromBody]string value)
-        {
-        }
-
-        // PUT api/values/5
-        [HttpPut("{id}")]
-        public void Put(int id, [FromBody]string value)
-        {
-        }
-
-        // DELETE api/values/5
-        [HttpDelete("{id}")]
-        public void Delete(int id)
-        {
+            return "BTBase Web API Service";
         }
     }
 }

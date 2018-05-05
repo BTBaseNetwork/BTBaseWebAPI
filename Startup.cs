@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using BahamutCommon.Utils;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
@@ -24,6 +25,7 @@ namespace BTBaseWebAPI
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddMvc();
+
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -33,7 +35,6 @@ namespace BTBaseWebAPI
             {
                 app.UseDeveloperExceptionPage();
             }
-
             app.UseMvc();
         }
     }

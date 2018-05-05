@@ -10,7 +10,7 @@ namespace BTBaseWebAPI.Controllers
     public class AppListsController : Controller
     {
         [HttpGet]
-        public void GetAppList(string bundleId)
+        public void GetAppList(string deviceId, int platform, string uniqueId, string channel, string bundleId, string urlSchemes)
         {
 
         }

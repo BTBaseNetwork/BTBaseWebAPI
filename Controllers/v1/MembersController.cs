@@ -9,8 +9,14 @@ namespace BTBaseWebAPI.Controllers
     [Route("api/v1/[controller]")]
     public class MembersController : Controller
     {
+        [HttpGet("Profile")]
+        public void GetProfile()
+        {
+
+        }
+
         [HttpPost("ExpiredDate/Order")]
-        public void Recharge(string productId, string receiptData)
+        public void Recharge(string productId, string receiptData, bool sandbox)
         {
 
         }

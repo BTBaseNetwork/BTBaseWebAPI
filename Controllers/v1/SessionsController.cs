@@ -20,5 +20,11 @@ namespace BTBaseWebAPI.Controllers
         {
 
         }
+
+        [HttpGet("DeviceSession")]
+        public void GetDeviceSession()
+        {
+            
+        }
     }
 }
