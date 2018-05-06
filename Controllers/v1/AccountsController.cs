@@ -2,9 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using BTBaseWebAPI.Models;
 using Microsoft.AspNetCore.Mvc;
 
-namespace BTBaseWebAPI.Controllers
+namespace BTBaseWebAPI.Controllers.v1
 {
     [Route("api/v1/[controller]")]
     public class AccountsController : Controller
@@ -18,7 +19,7 @@ namespace BTBaseWebAPI.Controllers
                 Nick = username,
                 Password = password,
             };
-            
+
         }
 
         [HttpGet("Username")]

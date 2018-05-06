@@ -1,6 +1,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using BahamutCommon.Utils;
+using BTBaseWebAPI.DAL;
+using BTBaseWebAPI.Models;
 
 public class SessionService
 {
@@ -15,7 +17,7 @@ public class SessionService
     {
         using (var dbContext = GetDbContext())
         {
-            var list = from s in dbContext.DbSetBTDeviceSession where s.IsValid && s.DeviceId == deviceId select s;
+            var list = from s in dbContext.BTDeviceSession where s.IsValid && s.DeviceId == deviceId select s;
             try
             {
                 return list.First();
@@ -32,7 +34,7 @@ public class SessionService
         using (var dbContext = GetDbContext())
         {
             session.SessionKey = BahamutCommon.Utils.IDUtil.GenerateLongId().ToString();
-            dbContext.DbSetBTDeviceSession.Add(session);
+            dbContext.BTDeviceSession.Add(session);
             dbContext.SaveChanges();
             return session;
         }
@@ -42,12 +44,12 @@ public class SessionService
     {
         using (var dbContext = GetDbContext())
         {
-            var list = (from s in dbContext.DbSetBTDeviceSession where s.IsValid && s.DeviceId == deviceId select s).ToList();
+            var list = (from s in dbContext.BTDeviceSession where s.IsValid && s.DeviceId == deviceId select s).ToList();
             foreach (var item in list)
             {
                 item.IsValid = false;
             }
-            dbContext.DbSetBTDeviceSession.UpdateRange(list);
+            dbContext.BTDeviceSession.UpdateRange(list);
             dbContext.SaveChanges();
         }
     }
@@ -56,7 +58,7 @@ public class SessionService
     {
         using (var dbContext = GetDbContext())
         {
-            var list = (from s in dbContext.DbSetBTDeviceSession where s.IsValid && s.AccountId == accountId select s).ToList();
+            var list = (from s in dbContext.BTDeviceSession where s.IsValid && s.AccountId == accountId select s).ToList();
             return list.ToList();
         }
     }
@@ -65,7 +67,7 @@ public class SessionService
     {
         using (var dbContext = GetDbContext())
         {
-            var list = (from s in dbContext.DbSetBTDeviceSession where s.IsValid && s.AccountId == accountId && s.DeviceId == deviceId select s).ToList();
+            var list = (from s in dbContext.BTDeviceSession where s.IsValid && s.AccountId == accountId && s.DeviceId == deviceId select s).ToList();
             foreach (var item in list)
             {
                 item.ReactiveDateTs = DateTimeUtil.UnixTimeSpanSec;
@@ -79,7 +81,7 @@ public class SessionService
     {
         using (var dbContext = GetDbContext())
         {
-            var list = (from s in dbContext.DbSetBTDeviceSession where s.IsValid && s.AccountId == accountId select s).ToList();
+            var list = (from s in dbContext.BTDeviceSession where s.IsValid && s.AccountId == accountId select s).ToList();
             list.Sort((a, b) => { return a.ReactiveDateTs >= b.ReactiveDateTs ? -1 : 1; });
             var dirtyList = new List<BTDeviceSession>();
             for (int i = accountDeviceLimited; i < list.Count; i++)
@@ -103,7 +105,7 @@ public class SessionService
             {
                 item.IsValid = false;
             }
-            dbContext.DbSetBTDeviceSession.UpdateRange(sessions);
+            dbContext.BTDeviceSession.UpdateRange(sessions);
             dbContext.SaveChanges();
         }
     }

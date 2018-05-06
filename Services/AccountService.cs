@@ -1,3 +1,6 @@
+using BTBaseWebAPI.DAL;
+using BTBaseWebAPI.Models;
+
 public class AccountService
 {
     public string DbConnectionString { get; set; }
@@ -11,7 +14,7 @@ public class AccountService
     {
         using (var dbContext = GetDbContext())
         {
-            var res = dbContext.DbSetBTAccount.Add(newAccount).Entity;
+            var res = dbContext.BTAccount.Add(newAccount).Entity;
             dbContext.SaveChanges();
             return res;
         }
@@ -21,11 +24,11 @@ public class AccountService
     {
         using (var dbContext = GetDbContext())
         {
-            var account = dbContext.DbSetBTAccount.Find(long.Parse(accountId));
+            var account = dbContext.BTAccount.Find(long.Parse(accountId));
             if (account != null)
             {
                 account.Password = newPassword;
-                dbContext.DbSetBTAccount.Update(account);
+                dbContext.BTAccount.Update(account);
                 return true;
             }
         }
@@ -36,11 +39,11 @@ public class AccountService
     {
         using (var dbContext = GetDbContext())
         {
-            var account = dbContext.DbSetBTAccount.Find(long.Parse(accountId));
+            var account = dbContext.BTAccount.Find(long.Parse(accountId));
             if (account != null)
             {
                 account.Nick = newNick;
-                dbContext.DbSetBTAccount.Update(account);
+                dbContext.BTAccount.Update(account);
                 return true;
             }
         }

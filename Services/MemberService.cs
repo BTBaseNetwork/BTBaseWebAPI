@@ -2,6 +2,8 @@ using System.Linq;
 using System.Data;
 using System;
 using BahamutCommon.Utils;
+using BTBaseWebAPI.DAL;
+using BTBaseWebAPI.Models;
 
 public class MemberService
 {
@@ -16,7 +18,7 @@ public class MemberService
     {
         using (var dbContext = GetDbContext())
         {
-            var list = from u in dbContext.DbSetBTMember where u.AccountId == accountId select u;
+            var list = from u in dbContext.BTMember where u.AccountId == accountId select u;
             return list.Count() > 0 ? list.First() : null;
         }
     }
@@ -25,8 +27,8 @@ public class MemberService
     {
         using (var dbContext = GetDbContext())
         {
-            var list = from u in dbContext.DbSetBTMember where u.AccountId == order.AccountId select u;
-            var listOrdered = from o in dbContext.DbSetBTMemberOrder where o.ReceiptData == order.ReceiptData select o.ID;
+            var list = from u in dbContext.BTMember where u.AccountId == order.AccountId select u;
+            var listOrdered = from o in dbContext.BTMemberOrder where o.ReceiptData == order.ReceiptData select o.ID;
             if (listOrdered.Count() > 0)
             {
                 //The Order Is Finished, Can't Request Same Order Twice
@@ -46,7 +48,7 @@ public class MemberService
                     MemberType = order.ChargeMemberType,
                     ExpiredDateTs = order.PreExpiredTs + order.ChargeTimes
                 };
-                dbContext.DbSetBTMember.Add(member);
+                dbContext.BTMember.Add(member);
             }
             else
             {
@@ -56,11 +58,11 @@ public class MemberService
                 member.ExpiredDateTs = Math.Max(order.PreExpiredTs, DateTimeUtil.UnixTimeSpanSec) + order.ChargeTimes;
                 member.PreMemberType = member.MemberType;
                 member.MemberType = order.ChargeMemberType;
-                dbContext.DbSetBTMember.Update(member);
+                dbContext.BTMember.Update(member);
             }
             order.OrderDateTs = DateTimeUtil.UnixTimeSpanSec;
             order.ChargedExpiredDateTime = DateTimeUtil.UnixTimeSpanZeroDate().Add(TimeSpan.FromSeconds(member.ExpiredDateTs));
-            dbContext.DbSetBTMemberOrder.Add(order);
+            dbContext.BTMemberOrder.Add(order);
             dbContext.SaveChanges();
             return true;
         }
