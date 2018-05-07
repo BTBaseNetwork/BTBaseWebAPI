@@ -41,18 +41,23 @@ namespace BTBaseWebAPI.Services
             dbContext.SaveChanges();
         }
 
-        public void ReactiveSession(BTBaseDbContext dbContext, string accountId, string deviceId, string session)
+        public bool ReactiveSession(BTBaseDbContext dbContext, string accountId, string deviceId, string session)
         {
             var list = (from s in dbContext.BTDeviceSession where s.IsValid && s.AccountId == accountId && s.DeviceId == deviceId && s.SessionKey == session select s).ToList();
-            foreach (var item in list)
+            if (list.Any())
             {
-                item.ReactiveDateTs = DateTimeUtil.UnixTimeSpanSec;
+                foreach (var item in list)
+                {
+                    item.ReactiveDateTs = DateTimeUtil.UnixTimeSpanSec;
+                }
+                dbContext.UpdateRange(list);
+                dbContext.SaveChanges();
+                return true;
             }
-            dbContext.UpdateRange(list);
-            dbContext.SaveChanges();
+            return false;
         }
 
-        public void InvalidSessionAccountLimited(BTBaseDbContext dbContext, string accountId, int accountDeviceLimited)
+        public IEnumerable<string> InvalidSessionAccountLimited(BTBaseDbContext dbContext, string accountId, int accountDeviceLimited)
         {
             var list = (from s in dbContext.BTDeviceSession where s.IsValid && s.AccountId == accountId select s).ToList();
             list.Sort((a, b) => { return a.ReactiveDateTs >= b.ReactiveDateTs ? -1 : 1; });
@@ -66,7 +71,9 @@ namespace BTBaseWebAPI.Services
             {
                 dbContext.UpdateRange(dirtyList);
                 dbContext.SaveChanges();
+                return from s in dirtyList select s.DeviceName;
             }
+            return new string[0];
         }
 
         private void InvalidAllSessions(BTBaseDbContext dbContext, IEnumerable<BTDeviceSession> sessions)

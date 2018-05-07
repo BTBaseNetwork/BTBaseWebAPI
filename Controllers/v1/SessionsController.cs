@@ -31,13 +31,15 @@ namespace BTBaseWebAPI.Controllers.v1
                     AccountId = account.AccountId,
                     DeviceName = this.GetHeaderDeviceName()
                 });
+                var logoutDevices = sessionService.InvalidSessionAccountLimited(dbContext, account.AccountId, 5);
                 return new ApiResult
                 {
                     code = 200,
                     content = new
                     {
                         AccountId = session.AccountId,
-                        Session = session.SessionKey
+                        Session = session.SessionKey,
+                        KickedDevices = logoutDevices.Count() > 0 ? logoutDevices : null
                     }
                 };
             }
@@ -57,10 +59,32 @@ namespace BTBaseWebAPI.Controllers.v1
             sessionService.InvalidAllSession(dbContext, this.GetHeaderAccountId(), this.GetHeaderDeviceId(), this.GetHeaderSession());
         }
 
-        [HttpGet("DeviceSession")]
-        public void GetDeviceSession()
+        [HttpPost("ReactiveSession")]
+        public object ReactiveSession()
         {
-            sessionService.ReactiveSession(dbContext, this.GetHeaderAccountId(), this.GetHeaderDeviceId(), this.GetHeaderSession());
+            var reatived = sessionService.ReactiveSession(dbContext, this.GetHeaderAccountId(), this.GetHeaderDeviceId(), this.GetHeaderSession());
+            return new ApiResult
+            {
+                code = 200,
+                msg = reatived ? "Session Reactived" : "No Session",
+                content = reatived
+            };
+        }
+
+        [HttpGet("Device")]
+        public object GetDeviceSession()
+        {
+            var session = sessionService.GetSession(dbContext, this.GetHeaderDeviceId());
+            return new ApiResult
+            {
+                code = 200,
+                msg = session == null ? "No Session" : "Success",
+                content = new
+                {
+                    AccountId = session.AccountId,
+                    Session = session.SessionKey,
+                }
+            };
         }
     }
 }
