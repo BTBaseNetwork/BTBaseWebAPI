@@ -19,12 +19,13 @@ namespace BTBaseWebAPI.Models
             modelBuilder.Entity<BTDeviceSession>(ac =>
             {
                 ac.HasKey(e => e.ID);
-                ac.Property(e => e.AccountId).IsRequired();
-                ac.Property(e => e.DeviceId).IsRequired();
+                ac.Property(e => e.AccountId).HasMaxLength(32).IsRequired();
+                ac.Property(e => e.DeviceId).HasMaxLength(512).IsRequired();
                 ac.Property(e => e.LoginDateTs);
                 ac.Property(e => e.ReactiveDateTs);
                 ac.Property(e => e.DeviceName);
-                ac.Property(e => e.SessionKey);
+                ac.Property(e => e.SessionKey).HasMaxLength(512).IsRequired();
+                ac.HasIndex(e => new { e.AccountId, e.DeviceId, e.SessionKey });
             });
         }
     }

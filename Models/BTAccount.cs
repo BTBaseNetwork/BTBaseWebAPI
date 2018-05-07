@@ -4,9 +4,9 @@ namespace BTBaseWebAPI.Models
     {
         public long AccountRawId { get; set; }
         public string AccountId { get { return AccountRawId.ToString(); } }
-        public string AccountTypes { get; set; }
         public string UserName { get; set; }
         public string Password { get; set; }
+        public string AccountTypes { get; set; }
         public string Nick { get; set; }
         public string Email { get; set; }
         public string Mobile { get; set; }
@@ -20,9 +20,10 @@ namespace BTBaseWebAPI.Models
             modelBuilder.Entity<BTAccount>(ac =>
             {
                 ac.HasKey(e => e.AccountRawId);
-                ac.Property(e => e.AccountTypes);
+                ac.Property(e => e.UserName).HasMaxLength(32);
                 ac.HasIndex(e => e.UserName).IsUnique();
-                ac.Property(e => e.Password).IsRequired();
+                ac.Property(e => e.Password).HasMaxLength(512).IsRequired();
+                ac.Property(e => e.AccountTypes);
                 ac.Property(e => e.Nick);
                 ac.Property(e => e.Email);
                 ac.Property(e => e.Mobile);
@@ -33,7 +34,6 @@ namespace BTBaseWebAPI.Models
 
     public partial class BTAccount
     {
-
         public const int ACCOUNT_TYPE_LOGOUT = -1;
         public const int ACCOUNT_TYPE_BTPLATFORM = 0;
         public const int ACCOUNT_TYPE_GAME_PRODUCER = 1;

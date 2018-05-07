@@ -27,7 +27,7 @@ namespace BTBaseWebAPI.Controllers.v1
                 var account = accountList.First();
                 var session = sessionService.NewSession(dbContext, new Models.BTDeviceSession
                 {
-                    DeviceId = this.GetHeaderSession(),
+                    DeviceId = this.GetHeaderDeviceId(),
                     AccountId = account.AccountId,
                     DeviceName = this.GetHeaderDeviceName()
                 });

@@ -22,14 +22,19 @@ namespace BTBaseWebAPI.Controllers.v1
         [HttpPost]
         public object Regist(string username, string password)
         {
+            if (!CommonRegexTestUtil.TestPattern(username, CommonRegexTestUtil.PATTERN_USERNAME))
+            {
+                return new ApiResult { code = 404, msg = "User Name Is Unsupport" };
+            }
+
+            if (!CommonRegexTestUtil.TestPattern(password, CommonRegexTestUtil.PATTERN_PASSWORD_HASH))
+            {
+                return new ApiResult { code = 404, msg = "Password Is Unsupport" };
+            }
+
             if (!accountService.IsUsernameAvaiable(dbContext, username))
             {
-                return new ApiResult
-                {
-                    code = 404,
-                    msg = "User Name Is Registed",
-                    content = new { UserName = username }
-                };
+                return new ApiResult { code = 404, msg = "User Name Is Registed" };
             }
 
             var newAccount = new BTAccount

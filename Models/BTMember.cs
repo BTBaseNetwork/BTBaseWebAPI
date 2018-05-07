@@ -16,10 +16,11 @@ namespace BTBaseWebAPI.Models
             modelBuilder.Entity<BTMember>(ac =>
             {
                 ac.HasKey(e => e.ID);
-                ac.Property(e => e.AccountId).IsRequired();
-                ac.Property(e => e.MemberType);
+                ac.Property(e => e.AccountId).HasMaxLength(32).IsRequired();
+                ac.Property(e => e.MemberType).IsRequired();
                 ac.Property(e => e.ExpiredDateTs);
                 ac.Property(e => e.FirstChargeDateTs);
+                ac.HasIndex(e => e.AccountId);
             });
         }
     }

@@ -28,5 +28,10 @@ namespace BTBaseWebAPI.Controllers
         {
             return controller.Request.Headers["platId"];
         }
+
+        public static string GetHeaderDeviceModel(this Controller controller)
+        {
+            return controller.Request.Headers["devModel"];
+        }
     }
 }
