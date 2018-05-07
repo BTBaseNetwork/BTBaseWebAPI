@@ -3,19 +3,11 @@ using System.Linq;
 using BahamutCommon.Utils;
 using BTBaseWebAPI.DAL;
 using BTBaseWebAPI.Models;
-
-public class SessionService
+namespace BTBaseWebAPI.Services
 {
-    public string DbConnectionString { get; set; }
-
-    public BTBaseDbContext GetDbContext()
+    public class SessionService
     {
-        return new BTBaseDbContext(DbConnectionString);
-    }
-
-    public BTDeviceSession GetSession(string deviceId)
-    {
-        using (var dbContext = GetDbContext())
+        public BTDeviceSession GetSession(BTBaseDbContext dbContext, string deviceId)
         {
             var list = from s in dbContext.BTDeviceSession where s.IsValid && s.DeviceId == deviceId select s;
             try
@@ -27,24 +19,20 @@ public class SessionService
                 return null;
             }
         }
-    }
 
-    public BTDeviceSession NewSession(BTDeviceSession session)
-    {
-        using (var dbContext = GetDbContext())
+        public BTDeviceSession NewSession(BTBaseDbContext dbContext, BTDeviceSession session)
         {
             session.SessionKey = BahamutCommon.Utils.IDUtil.GenerateLongId().ToString();
+            session.IsValid = true;
+            session.LoginDateTs = session.ReactiveDateTs = DateTimeUtil.UnixTimeSpanSec;
             dbContext.BTDeviceSession.Add(session);
             dbContext.SaveChanges();
             return session;
         }
-    }
 
-    public void InvalidAllSession(string deviceId)
-    {
-        using (var dbContext = GetDbContext())
+        public void InvalidAllSession(BTBaseDbContext dbContext, string accountId, string deviceId, string session)
         {
-            var list = (from s in dbContext.BTDeviceSession where s.IsValid && s.DeviceId == deviceId select s).ToList();
+            var list = (from s in dbContext.BTDeviceSession where s.IsValid && s.DeviceId == deviceId && s.AccountId == accountId && s.SessionKey == session select s).ToList();
             foreach (var item in list)
             {
                 item.IsValid = false;
@@ -52,22 +40,10 @@ public class SessionService
             dbContext.BTDeviceSession.UpdateRange(list);
             dbContext.SaveChanges();
         }
-    }
 
-    private IEnumerable<BTDeviceSession> GetAccountSessions(string accountId)
-    {
-        using (var dbContext = GetDbContext())
+        public void ReactiveSession(BTBaseDbContext dbContext, string accountId, string deviceId, string session)
         {
-            var list = (from s in dbContext.BTDeviceSession where s.IsValid && s.AccountId == accountId select s).ToList();
-            return list.ToList();
-        }
-    }
-
-    public void ReactiveSession(string accountId, string deviceId)
-    {
-        using (var dbContext = GetDbContext())
-        {
-            var list = (from s in dbContext.BTDeviceSession where s.IsValid && s.AccountId == accountId && s.DeviceId == deviceId select s).ToList();
+            var list = (from s in dbContext.BTDeviceSession where s.IsValid && s.AccountId == accountId && s.DeviceId == deviceId && s.SessionKey == session select s).ToList();
             foreach (var item in list)
             {
                 item.ReactiveDateTs = DateTimeUtil.UnixTimeSpanSec;
@@ -75,11 +51,8 @@ public class SessionService
             dbContext.UpdateRange(list);
             dbContext.SaveChanges();
         }
-    }
 
-    public void InvalidSessionAccountLimited(string accountId, int accountDeviceLimited)
-    {
-        using (var dbContext = GetDbContext())
+        public void InvalidSessionAccountLimited(BTBaseDbContext dbContext, string accountId, int accountDeviceLimited)
         {
             var list = (from s in dbContext.BTDeviceSession where s.IsValid && s.AccountId == accountId select s).ToList();
             list.Sort((a, b) => { return a.ReactiveDateTs >= b.ReactiveDateTs ? -1 : 1; });
@@ -95,11 +68,8 @@ public class SessionService
                 dbContext.SaveChanges();
             }
         }
-    }
 
-    private void InvalidAllSessions(IEnumerable<BTDeviceSession> sessions)
-    {
-        using (var dbContext = GetDbContext())
+        private void InvalidAllSessions(BTBaseDbContext dbContext, IEnumerable<BTDeviceSession> sessions)
         {
             foreach (var item in sessions)
             {

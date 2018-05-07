@@ -1,43 +1,35 @@
+using BahamutCommon.Utils;
 using BTBaseWebAPI.DAL;
 using BTBaseWebAPI.Models;
 
-public class AccountService
+namespace BTBaseWebAPI.Services
 {
-    public string DbConnectionString { get; set; }
-
-    public BTBaseDbContext GetDbContext()
+    public class AccountService
     {
-        return new BTBaseDbContext(DbConnectionString);
-    }
 
-    public BTAccount CreateNewAccount(BTAccount newAccount)
-    {
-        using (var dbContext = GetDbContext())
+        public BTAccount CreateNewAccount(BTBaseDbContext dbContext, BTAccount newAccount)
         {
+            newAccount.AccountTypes = BTAccount.ACCOUNT_TYPE_GAME_PLAYER.ToString();
+            newAccount.SignDateTs = DateTimeUtil.UnixTimeSpanSec;
+
             var res = dbContext.BTAccount.Add(newAccount).Entity;
             dbContext.SaveChanges();
             return res;
         }
-    }
 
-    public bool UpdatePassword(string accountId, string newPassword)
-    {
-        using (var dbContext = GetDbContext())
+        public bool UpdatePassword(BTBaseDbContext dbContext, string accountId, string originPassword, string newPassword)
         {
             var account = dbContext.BTAccount.Find(long.Parse(accountId));
-            if (account != null)
+            if (account != null && account.Password == originPassword)
             {
                 account.Password = newPassword;
                 dbContext.BTAccount.Update(account);
                 return true;
             }
+            return false;
         }
-        return false;
-    }
 
-    public bool UpdateNick(string accountId, string newNick)
-    {
-        using (var dbContext = GetDbContext())
+        public bool UpdateNick(BTBaseDbContext dbContext, string accountId, string newNick)
         {
             var account = dbContext.BTAccount.Find(long.Parse(accountId));
             if (account != null)
@@ -46,7 +38,7 @@ public class AccountService
                 dbContext.BTAccount.Update(account);
                 return true;
             }
+            return false;
         }
-        return false;
     }
 }

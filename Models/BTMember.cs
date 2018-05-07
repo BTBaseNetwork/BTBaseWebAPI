@@ -13,12 +13,15 @@ namespace BTBaseWebAPI.Models
     {
         public static void OnDbContextModelCreating(Microsoft.EntityFrameworkCore.ModelBuilder modelBuilder)
         {
-            modelBuilder.Entity<BTMember>().HasKey(e => e.ID);
-            modelBuilder.Entity<BTMember>().Property(e => e.AccountId).IsRequired();
-            modelBuilder.Entity<BTMember>().Property(e => e.MemberType);
-            modelBuilder.Entity<BTMember>().Property(e => e.PreMemberType);
-            modelBuilder.Entity<BTMember>().Property(e => e.ExpiredDateTs);
-            modelBuilder.Entity<BTMember>().Property(e => e.FirstChargeDateTs);
+            modelBuilder.Entity<BTMember>(ac =>
+            {
+                ac.HasKey(e => e.ID);
+                ac.Property(e => e.AccountId).IsRequired();
+                ac.Property(e => e.MemberType);
+                ac.Property(e => e.PreMemberType);
+                ac.Property(e => e.ExpiredDateTs);
+                ac.Property(e => e.FirstChargeDateTs);
+            });
         }
     }
 

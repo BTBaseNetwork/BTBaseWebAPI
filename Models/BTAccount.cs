@@ -17,14 +17,17 @@ namespace BTBaseWebAPI.Models
     {
         public static void OnDbContextModelCreating(Microsoft.EntityFrameworkCore.ModelBuilder modelBuilder)
         {
-            modelBuilder.Entity<BTAccount>().HasKey(e => e.AccountRawId);
-            modelBuilder.Entity<BTAccount>().Property(e => e.AccountTypes);
-            modelBuilder.Entity<BTAccount>().Property(e => e.UserName).IsRequired();
-            modelBuilder.Entity<BTAccount>().Property(e => e.Password).IsRequired();
-            modelBuilder.Entity<BTAccount>().Property(e => e.Nick);
-            modelBuilder.Entity<BTAccount>().Property(e => e.Email);
-            modelBuilder.Entity<BTAccount>().Property(e => e.Mobile);
-            modelBuilder.Entity<BTAccount>().Property(e => e.SignDateTs);
+            modelBuilder.Entity<BTAccount>(ac =>
+            {
+                ac.HasKey(e => e.AccountRawId);
+                ac.Property(e => e.AccountTypes);
+                ac.Property(e => e.UserName).IsRequired();
+                ac.Property(e => e.Password).IsRequired();
+                ac.Property(e => e.Nick);
+                ac.Property(e => e.Email);
+                ac.Property(e => e.Mobile);
+                ac.Property(e => e.SignDateTs);
+            });
         }
     }
 

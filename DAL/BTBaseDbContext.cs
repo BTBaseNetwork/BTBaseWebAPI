@@ -4,19 +4,16 @@ using BTBaseWebAPI.Models;
 
 namespace BTBaseWebAPI.DAL
 {
-    public class BTBaseDbContext : MysqlDbContextBase
+    public class BTBaseDbContext : DbContext
     {
         public virtual DbSet<BTAccount> BTAccount { get; set; }
         public virtual DbSet<BTDeviceSession> BTDeviceSession { get; set; }
         public virtual DbSet<BTMember> BTMember { get; set; }
         public virtual DbSet<BTMemberOrder> BTMemberOrder { get; set; }
 
-        public BTBaseDbContext(string connectionString) : base(connectionString) { }
-
-        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        public BTBaseDbContext(DbContextOptions options) : base(options)
         {
-            base.OnConfiguring(optionsBuilder);
-            optionsBuilder.UseMySQL(ConnectionString);
+            
         }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)

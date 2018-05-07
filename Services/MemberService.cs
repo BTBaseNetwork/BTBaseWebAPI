@@ -4,28 +4,18 @@ using System;
 using BahamutCommon.Utils;
 using BTBaseWebAPI.DAL;
 using BTBaseWebAPI.Models;
-
-public class MemberService
+namespace BTBaseWebAPI.Services
 {
-    public string DbConnectionString { get; set; }
-
-    public BTBaseDbContext GetDbContext()
+    public class MemberService
     {
-        return new BTBaseDbContext(DbConnectionString);
-    }
 
-    public BTMember GetProfile(string accountId)
-    {
-        using (var dbContext = GetDbContext())
+        public BTMember GetProfile(BTBaseDbContext dbContext, string accountId)
         {
             var list = from u in dbContext.BTMember where u.AccountId == accountId select u;
             return list.Count() > 0 ? list.First() : null;
         }
-    }
 
-    public bool RechargeMember(BTMemberOrder order)
-    {
-        using (var dbContext = GetDbContext())
+        public bool RechargeMember(BTBaseDbContext dbContext, BTMemberOrder order)
         {
             var list = from u in dbContext.BTMember where u.AccountId == order.AccountId select u;
             var listOrdered = from o in dbContext.BTMemberOrder where o.ReceiptData == order.ReceiptData select o.ID;

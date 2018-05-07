@@ -16,13 +16,16 @@ namespace BTBaseWebAPI.Models
     {
         public static void OnDbContextModelCreating(Microsoft.EntityFrameworkCore.ModelBuilder modelBuilder)
         {
-            modelBuilder.Entity<BTDeviceSession>().HasKey(e => e.ID);
-            modelBuilder.Entity<BTDeviceSession>().Property(e => e.AccountId).IsRequired();
-            modelBuilder.Entity<BTDeviceSession>().Property(e => e.DeviceId).IsRequired();
-            modelBuilder.Entity<BTDeviceSession>().Property(e => e.LoginDateTs);
-            modelBuilder.Entity<BTDeviceSession>().Property(e => e.ReactiveDateTs);
-            modelBuilder.Entity<BTDeviceSession>().Property(e => e.DeviceName);
-            modelBuilder.Entity<BTDeviceSession>().Property(e => e.SessionKey);
+            modelBuilder.Entity<BTDeviceSession>(ac =>
+            {
+                ac.HasKey(e => e.ID);
+                ac.Property(e => e.AccountId).IsRequired();
+                ac.Property(e => e.DeviceId).IsRequired();
+                ac.Property(e => e.LoginDateTs);
+                ac.Property(e => e.ReactiveDateTs);
+                ac.Property(e => e.DeviceName);
+                ac.Property(e => e.SessionKey);
+            });
         }
     }
 }

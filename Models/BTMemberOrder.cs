@@ -21,16 +21,19 @@ namespace BTBaseWebAPI.Models
     {
         public static void OnDbContextModelCreating(Microsoft.EntityFrameworkCore.ModelBuilder modelBuilder)
         {
-            modelBuilder.Entity<BTMemberOrder>().HasKey(e => e.ID);
-            modelBuilder.Entity<BTMemberOrder>().Property(e => e.AccountId).IsRequired();
-            modelBuilder.Entity<BTMemberOrder>().Property(e => e.OrderDateTs);
-            modelBuilder.Entity<BTMemberOrder>().Property(e => e.ProductId);
-            modelBuilder.Entity<BTMemberOrder>().Property(e => e.ReceiptData);
-            modelBuilder.Entity<BTMemberOrder>().Property(e => e.PreMemberType);
-            modelBuilder.Entity<BTMemberOrder>().Property(e => e.ChargeMemberType);
-            modelBuilder.Entity<BTMemberOrder>().Property(e => e.PreExpiredTs);
-            modelBuilder.Entity<BTMemberOrder>().Property(e => e.ChargeTimes);
-            modelBuilder.Entity<BTMemberOrder>().Property(e => e.ChargedExpiredDateTime);
+            modelBuilder.Entity<BTMemberOrder>(ac =>
+            {
+                ac.HasKey(e => e.ID);
+                ac.Property(e => e.AccountId).IsRequired();
+                ac.Property(e => e.OrderDateTs);
+                ac.Property(e => e.ProductId);
+                ac.Property(e => e.ReceiptData);
+                ac.Property(e => e.PreMemberType);
+                ac.Property(e => e.ChargeMemberType);
+                ac.Property(e => e.PreExpiredTs);
+                ac.Property(e => e.ChargeTimes);
+                ac.Property(e => e.ChargedExpiredDateTime);
+            });
         }
     }
 }

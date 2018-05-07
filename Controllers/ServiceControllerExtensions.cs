@@ -1,0 +1,32 @@
+using Microsoft.AspNetCore.Mvc;
+
+namespace BTBaseWebAPI.Controllers
+{
+    public static class ServiceControllerExtensions
+    {
+        public static string GetHeaderAccountId(this Controller controller)
+        {
+            return controller.Request.Headers["accountId"];
+        }
+
+        public static string GetHeaderDeviceId(this Controller controller)
+        {
+            return controller.Request.Headers["devId"];
+        }
+
+        public static string GetHeaderSession(this Controller controller)
+        {
+            return controller.Request.Headers["session"];
+        }
+
+        public static string GetHeaderDeviceName(this Controller controller)
+        {
+            return controller.Request.Headers["devName"];
+        }
+
+        public static string GetHeaderPlatformId(this Controller controller)
+        {
+            return controller.Request.Headers["platId"];
+        }
+    }
+}
