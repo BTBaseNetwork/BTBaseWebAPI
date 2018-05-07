@@ -7,13 +7,11 @@ namespace BTBaseWebAPI.Models
         public long ID { get; set; }
         public string AccountId { get; set; }
         public string ProductId { get; set; }
-        public int ChargeMemberType { get; set; }
+        public int MemberType { get; set; }
         public double ChargeTimes { get; set; }
         public string ReceiptData { get; set; }
-        public int PreMemberType { get; set; }
-        public double PreExpiredTs { get; set; }
         public double OrderDateTs { get; set; }
-
+        public string OrderKey { get; set; }
         public DateTime ChargedExpiredDateTime { get; set; }
     }
 
@@ -28,10 +26,9 @@ namespace BTBaseWebAPI.Models
                 ac.Property(e => e.OrderDateTs);
                 ac.Property(e => e.ProductId);
                 ac.Property(e => e.ReceiptData);
-                ac.Property(e => e.PreMemberType);
-                ac.Property(e => e.ChargeMemberType);
-                ac.Property(e => e.PreExpiredTs);
+                ac.Property(e => e.MemberType);
                 ac.Property(e => e.ChargeTimes);
+                ac.Property(e => e.OrderKey);
                 ac.Property(e => e.ChargedExpiredDateTime);
             });
         }

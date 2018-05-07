@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using BTBaseWebAPI.Models;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.NodeServices;
 
 namespace BTBaseWebAPI.Controllers.v1
 {
@@ -22,7 +23,6 @@ namespace BTBaseWebAPI.Controllers.v1
         public object GetProfile()
         {
             var profile = memberService.GetProfile(dbContext, this.GetHeaderAccountId());
-            profile.ID = 0;
             return new ApiResult
             {
                 code = 200,
@@ -31,7 +31,7 @@ namespace BTBaseWebAPI.Controllers.v1
         }
 
         [HttpPost("ExpiredDate/Order")]
-        public void Recharge(string productId, string channel, string receiptData, bool sandbox)
+        public void Recharge(string productId, string channel, string receiptData, bool sandbox, [FromServices]INodeServices nodeService)
         {
 
         }

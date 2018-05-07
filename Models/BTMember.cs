@@ -5,10 +5,10 @@ namespace BTBaseWebAPI.Models
         public long ID { get; set; }
         public string AccountId { get; set; }
         public int MemberType { get; set; }
-        public int PreMemberType { get; set; }
         public double ExpiredDateTs { get; set; }
         public double FirstChargeDateTs { get; set; }
     }
+
     public partial class BTMember
     {
         public static void OnDbContextModelCreating(Microsoft.EntityFrameworkCore.ModelBuilder modelBuilder)
@@ -18,7 +18,6 @@ namespace BTBaseWebAPI.Models
                 ac.HasKey(e => e.ID);
                 ac.Property(e => e.AccountId).IsRequired();
                 ac.Property(e => e.MemberType);
-                ac.Property(e => e.PreMemberType);
                 ac.Property(e => e.ExpiredDateTs);
                 ac.Property(e => e.FirstChargeDateTs);
             });

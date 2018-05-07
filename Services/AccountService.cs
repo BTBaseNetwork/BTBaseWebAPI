@@ -1,3 +1,5 @@
+using System;
+using System.Linq;
 using BahamutCommon.Utils;
 using BTBaseWebAPI.DAL;
 using BTBaseWebAPI.Models;
@@ -11,7 +13,6 @@ namespace BTBaseWebAPI.Services
         {
             newAccount.AccountTypes = BTAccount.ACCOUNT_TYPE_GAME_PLAYER.ToString();
             newAccount.SignDateTs = DateTimeUtil.UnixTimeSpanSec;
-
             var res = dbContext.BTAccount.Add(newAccount).Entity;
             dbContext.SaveChanges();
             return res;
@@ -39,6 +40,11 @@ namespace BTBaseWebAPI.Services
                 return true;
             }
             return false;
+        }
+
+        public bool IsUsernameAvaiable(BTBaseDbContext dbContext, string username)
+        {
+            return dbContext.BTAccount.Count(x => x.UserName == username) == 0;
         }
     }
 }

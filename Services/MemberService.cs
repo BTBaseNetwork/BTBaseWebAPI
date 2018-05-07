@@ -8,49 +8,52 @@ namespace BTBaseWebAPI.Services
 {
     public class MemberService
     {
-
-        public BTMember GetProfile(BTBaseDbContext dbContext, string accountId)
+        public BTMemberProfile GetProfile(BTBaseDbContext dbContext, string accountId)
         {
             var list = from u in dbContext.BTMember where u.AccountId == accountId select u;
-            return list.Count() > 0 ? list.First() : null;
+            var profile = new BTMemberProfile
+            {
+                AccountId = accountId,
+                Members = list.ToArray()
+            };
+            foreach (var item in profile.Members)
+            {
+                item.ID = 0;
+            }
+            return profile;
         }
 
         public bool RechargeMember(BTBaseDbContext dbContext, BTMemberOrder order)
         {
-            var list = from u in dbContext.BTMember where u.AccountId == order.AccountId select u;
-            var listOrdered = from o in dbContext.BTMemberOrder where o.ReceiptData == order.ReceiptData select o.ID;
-            if (listOrdered.Count() > 0)
+            var listOrdered = from o in dbContext.BTMemberOrder where o.OrderKey == order.OrderKey select o.ID;
+            if (listOrdered.Any())
             {
                 //The Order Is Finished, Can't Request Same Order Twice
                 return false;
             }
 
+            var list = from u in dbContext.BTMember where u.AccountId == order.AccountId && u.MemberType == order.MemberType select u;
             BTMember member;
+            var now = DateTimeUtil.UnixTimeSpanSec;
             if (list.Count() == 0)
             {
-                order.PreMemberType = BTMember.MEMBER_TYPE_FREE;
-                order.PreExpiredTs = DateTimeUtil.UnixTimeSpanSec;
                 member = new BTMember
                 {
                     AccountId = order.AccountId,
-                    FirstChargeDateTs = order.PreExpiredTs,
-                    PreMemberType = BTMember.MEMBER_TYPE_FREE,
-                    MemberType = order.ChargeMemberType,
-                    ExpiredDateTs = order.PreExpiredTs + order.ChargeTimes
+                    FirstChargeDateTs = now,
+                    MemberType = order.MemberType,
+                    ExpiredDateTs = now + order.ChargeTimes
                 };
                 dbContext.BTMember.Add(member);
             }
             else
             {
                 member = list.First();
-                order.PreMemberType = member.MemberType;
-                order.PreExpiredTs = member.ExpiredDateTs;
-                member.ExpiredDateTs = Math.Max(order.PreExpiredTs, DateTimeUtil.UnixTimeSpanSec) + order.ChargeTimes;
-                member.PreMemberType = member.MemberType;
-                member.MemberType = order.ChargeMemberType;
+                member.ExpiredDateTs = Math.Max(member.ExpiredDateTs, now) + order.ChargeTimes;
+                member.MemberType = order.MemberType;
                 dbContext.BTMember.Update(member);
             }
-            order.OrderDateTs = DateTimeUtil.UnixTimeSpanSec;
+            order.OrderDateTs = now;
             order.ChargedExpiredDateTime = DateTimeUtil.UnixTimeSpanZeroDate().Add(TimeSpan.FromSeconds(member.ExpiredDateTs));
             dbContext.BTMemberOrder.Add(order);
             dbContext.SaveChanges();

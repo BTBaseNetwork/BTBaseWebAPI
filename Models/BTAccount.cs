@@ -21,7 +21,7 @@ namespace BTBaseWebAPI.Models
             {
                 ac.HasKey(e => e.AccountRawId);
                 ac.Property(e => e.AccountTypes);
-                ac.Property(e => e.UserName).IsRequired();
+                ac.HasIndex(e => e.UserName).IsUnique();
                 ac.Property(e => e.Password).IsRequired();
                 ac.Property(e => e.Nick);
                 ac.Property(e => e.Email);

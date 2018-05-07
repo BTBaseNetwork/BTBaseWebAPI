@@ -22,12 +22,23 @@ namespace BTBaseWebAPI.Controllers.v1
         [HttpPost]
         public object Regist(string username, string password)
         {
+            if (!accountService.IsUsernameAvaiable(dbContext, username))
+            {
+                return new ApiResult
+                {
+                    code = 404,
+                    msg = "User Name Is Registed",
+                    content = new { UserName = username }
+                };
+            }
+
             var newAccount = new BTAccount
             {
                 UserName = username,
                 Nick = username,
                 Password = password,
             };
+
             newAccount = accountService.CreateNewAccount(dbContext, newAccount);
             return new ApiResult
             {
@@ -51,7 +62,7 @@ namespace BTBaseWebAPI.Controllers.v1
             return new ApiResult
             {
                 code = 200,
-                content = dbContext.BTAccount.Count(x => x.UserName == username)
+                content = accountService.IsUsernameAvaiable(dbContext, username)
             };
         }
 

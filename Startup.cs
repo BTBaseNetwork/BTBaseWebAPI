@@ -38,17 +38,37 @@ namespace BTBaseWebAPI
             {
                 builder.UseMySQL(Environment.GetEnvironmentVariable("MYSQL_CONSTR"));
             });
+            services.AddNodeServices();
 
+        }
+
+        private void TryConnectDB(IApplicationBuilder app)
+        {
+            using (var sc = app.ApplicationServices.CreateScope())
+            {
+                try
+                {
+                    var dbContext = sc.ServiceProvider.GetService<DAL.BTBaseDbContext>();
+                    dbContext.Database.EnsureCreated();
+                    Console.WriteLine("Connect DB Success");
+                }
+                catch (System.Exception ex)
+                {
+                    Console.WriteLine("Connect DB Error:" + ex.ToString());
+                }
+            }
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IHostingEnvironment env)
         {
+
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
             }
             app.UseMvc();
+            TryConnectDB(app);
         }
     }
 }
