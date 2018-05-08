@@ -2,6 +2,10 @@ namespace BTBaseWebAPI.Models
 {
     public partial class BTMemberProduct
     {
+        /// Product Id : {app_identifier}.iap.member.{member_type_key}.{charge_times_seconds}
+        /// eg: cn.game.bahamut.xgame.iap.member.2.2592000 
+        ///Sample product id represent: member type: Premium(check BTServiceConst.cs), charge times: 30 days
+
         public string ProductId { get; set; }
         public int MemberType { get; set; }
         public double ChargeTimes { get; set; }
