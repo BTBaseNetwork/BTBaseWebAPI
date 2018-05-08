@@ -5,10 +5,15 @@ namespace BTBaseWebAPI.Controllers
 {
     public static class ControllerHttpStatusCodeExtensions
     {
+        public static int SetResponseStatusCode(this Controller controller, int statusCode)
+        {
+            controller.Response.StatusCode = statusCode;
+            return statusCode;
+        }
+
         public static int SetResponseStatusCode(this Controller controller, HttpStatusCode statusCode)
         {
-            controller.Response.StatusCode = (int)statusCode;
-            return (int)statusCode;
+            return controller.SetResponseStatusCode((int)statusCode);
         }
 
         public static int SetResponseOK(this Controller controller)
