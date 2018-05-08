@@ -20,6 +20,46 @@ namespace BTBaseWebAPI.Services
             }
         }
 
+        public BTDeviceSession GetSession(BTBaseDbContext dbContext, string deviceId, string accountId, bool reactive)
+        {
+            var list = from s in dbContext.BTDeviceSession where s.IsValid && s.DeviceId == deviceId && s.AccountId == accountId select s;
+            try
+            {
+                var session = list.First();
+                if (reactive)
+                {
+                    session.ReactiveDateTs = DateTimeUtil.UnixTimeSpanSec;
+                    dbContext.BTDeviceSession.Update(session);
+                    dbContext.SaveChanges();
+                }
+                return session;
+            }
+            catch (System.Exception)
+            {
+                return null;
+            }
+        }
+
+        public BTDeviceSession TestSession(BTBaseDbContext dbContext, string deviceId, string accountId, string sessionKey, bool reactive)
+        {
+            var list = from s in dbContext.BTDeviceSession where s.IsValid && s.DeviceId == deviceId && s.AccountId == accountId && s.SessionKey == sessionKey select s;
+            try
+            {
+                var session = list.First();
+                if (reactive)
+                {
+                    session.ReactiveDateTs = DateTimeUtil.UnixTimeSpanSec;
+                    dbContext.BTDeviceSession.Update(session);
+                    dbContext.SaveChanges();
+                }
+                return session;
+            }
+            catch (System.Exception)
+            {
+                return null;
+            }
+        }
+
         public BTDeviceSession NewSession(BTBaseDbContext dbContext, BTDeviceSession session)
         {
             session.SessionKey = BahamutCommon.Utils.IDUtil.GenerateLongId().ToString();
@@ -30,7 +70,7 @@ namespace BTBaseWebAPI.Services
             return session;
         }
 
-        public void InvalidAllSession(BTBaseDbContext dbContext, string accountId, string deviceId, string session)
+        public IEnumerable<BTDeviceSession> InvalidAllSession(BTBaseDbContext dbContext, string accountId, string deviceId, string session)
         {
             var list = (from s in dbContext.BTDeviceSession where s.IsValid && s.DeviceId == deviceId && s.AccountId == accountId && s.SessionKey == session select s).ToList();
             foreach (var item in list)
@@ -38,23 +78,30 @@ namespace BTBaseWebAPI.Services
                 item.IsValid = false;
             }
             dbContext.BTDeviceSession.UpdateRange(list);
-            dbContext.SaveChanges();
+            if (dbContext.SaveChanges() > 0)
+            {
+                return list;
+            }
+            else
+            {
+                return new BTDeviceSession[0];
+            }
         }
 
-        public bool ReactiveSession(BTBaseDbContext dbContext, string accountId, string deviceId, string session)
+        public BTDeviceSession ReactiveSession(BTBaseDbContext dbContext, string deviceId)
         {
-            var list = (from s in dbContext.BTDeviceSession where s.IsValid && s.AccountId == accountId && s.DeviceId == deviceId && s.SessionKey == session select s).ToList();
-            if (list.Any())
+            try
             {
-                foreach (var item in list)
-                {
-                    item.ReactiveDateTs = DateTimeUtil.UnixTimeSpanSec;
-                }
-                dbContext.UpdateRange(list);
+                var session = (from s in dbContext.BTDeviceSession where s.IsValid && s.DeviceId == deviceId select s).First();
+                session.ReactiveDateTs = DateTimeUtil.UnixTimeSpanSec;
+                dbContext.BTDeviceSession.Update(session);
                 dbContext.SaveChanges();
-                return true;
+                return session;
             }
-            return false;
+            catch (System.Exception)
+            {
+                return null;
+            }
         }
 
         public IEnumerable<string> InvalidSessionAccountLimited(BTBaseDbContext dbContext, string accountId, int accountDeviceLimited)

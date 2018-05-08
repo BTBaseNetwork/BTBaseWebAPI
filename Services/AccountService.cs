@@ -46,5 +46,40 @@ namespace BTBaseWebAPI.Services
         {
             return dbContext.BTAccount.Count(x => x.UserName == username) == 0;
         }
+
+        public BTAccount GetProfile(BTBaseDbContext dbContext, string accountId)
+        {
+            return dbContext.BTAccount.Find(long.Parse(accountId));
+        }
+
+        public BTAccount GetValidateProfile(BTBaseDbContext dbContext, string userstring, string password)
+        {
+            BTAccount account = null;
+            if (account == null && CommonRegexTestUtil.TestPattern(userstring, CommonRegexTestUtil.PATTERN_ACOUNT_ID))
+            {
+                var query = from a in dbContext.BTAccount where a.Password == password && a.AccountId == userstring select a;
+                try { account = query.First(); } catch (System.Exception) { }
+            }
+
+            if (account == null && CommonRegexTestUtil.TestPattern(userstring, CommonRegexTestUtil.PATTERN_EMAIL))
+            {
+                var query = from a in dbContext.BTAccount where a.Password == password && a.Email == userstring select a;
+                try { account = query.First(); } catch (System.Exception) { }
+            }
+
+            if (account == null && CommonRegexTestUtil.TestPattern(userstring, CommonRegexTestUtil.PATTERN_USERNAME))
+            {
+                var query = from a in dbContext.BTAccount where a.Password == password && a.UserName == userstring select a;
+                try { account = query.First(); } catch (System.Exception) { }
+            }
+
+            if (account == null && CommonRegexTestUtil.TestPattern(userstring, CommonRegexTestUtil.PATTERN_PHONE_NO))
+            {
+                var query = from a in dbContext.BTAccount where a.Password == password && a.Mobile == userstring select a;
+                try { account = query.First(); } catch (System.Exception) { }
+            }
+
+            return account;
+        }
     }
 }

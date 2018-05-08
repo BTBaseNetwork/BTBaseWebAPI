@@ -1,10 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
 using System.Threading.Tasks;
 using BTBaseWebAPI.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.NodeServices;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace BTBaseWebAPI.Controllers.v1
 {
@@ -25,15 +28,94 @@ namespace BTBaseWebAPI.Controllers.v1
             var profile = memberService.GetProfile(dbContext, this.GetHeaderAccountId());
             return new ApiResult
             {
-                code = 200,
+                code = this.SetResponseOK(),
                 content = profile
             };
         }
 
         [HttpPost("ExpiredDate/Order")]
-        public void Recharge(string productId, string channel, string receiptData, bool sandbox, [FromServices]INodeServices nodeService)
+        public async Task<object> RechargeAsync(string productId, string channel, string receiptData, bool sandbox, [FromServices]INodeServices nodeService)
         {
-
+            switch (channel)
+            {
+                case BTService.BTServiceConst.CHANNEL_APP_STORE:
+                    return await VerifyReceiptAppStoreAsync(productId, receiptData, sandbox);
+                default:
+                    return new ApiResult
+                    {
+                        code = this.SetResponseForbidden(),
+                        msg = "Unsupported Channel"
+                    };
+            }
         }
+
+        #region iTunes Store
+        private async Task<object> VerifyReceiptAppStoreAsync(string productId, string receiptData, bool sandbox)
+        {
+            //购买凭证验证地址  
+            const string certificateUrl = "https://buy.itunes.apple.com/verifyReceipt";
+            //测试的购买凭证验证地址   
+            const string certificateUrlTest = "https://sandbox.itunes.apple.com/verifyReceipt";
+
+            var url = sandbox ? certificateUrlTest : certificateUrl;
+            var postBody = new Dictionary<string, string>() { { "receipt-data", receiptData } };
+
+            using (var client = new HttpClient())
+            {
+                var content = new StringContent(JsonConvert.SerializeObject(postBody, Formatting.None), System.Text.Encoding.UTF8, "application/json");
+                var msg = await client.PostAsync(url, content);
+                var result = await msg.Content.ReadAsStringAsync();
+                var jsonResult = JsonConvert.DeserializeObject<JObject>(result);
+                var statusCode = jsonResult.GetValue("status").Value<int>();
+                if (statusCode == 0)
+                {
+                    long transactionId = 0;
+                    string receiptProductId = null;
+                    if (jsonResult["receipt"]["in_app"].HasValues)
+                    {
+                        transactionId = jsonResult["receipt"]["in_app"]["transaction_id"].Value<long>();
+                        receiptProductId = jsonResult["receipt"]["in_app"]["product_id"].Value<string>();
+                    }
+                    else
+                    {
+                        transactionId = jsonResult["receipt"]["transaction_id"].Value<long>();
+                        receiptProductId = jsonResult["receipt"]["product_id"].Value<string>();
+                    }
+
+                    BTMemberProduct product = null;
+                    if (productId == receiptProductId && BTMemberProduct.TryParseIAPProductId(productId, out product))
+                    {
+                        var suc = memberService.RechargeMember(dbContext, new BTMemberOrder
+                        {
+                            OrderKey = transactionId.ToString(),
+                            AccountId = this.GetHeaderAccountId(),
+                            ProductId = productId,
+                            ReceiptData = receiptData,
+                            MemberType = product.MemberType,
+                            ChargeTimes = product.ChargeTimes
+                        });
+
+                        if (suc)
+                        {
+                            return new ApiResult { code = 200 };
+                        }
+                        else
+                        {
+                            return new ApiResult { code = 404, content = new ErrorResult { errorCode = 404, error = "Is A Completed Order" } };
+                        }
+                    }
+                    else
+                    {
+                        return new ApiResult { code = 400, content = new ErrorResult { errorCode = 400, error = "Unmatched Product Id" } };
+                    }
+                }
+                else
+                {
+                    return new ApiResult { code = 400, content = new ErrorResult { errorCode = statusCode } };
+                }
+
+            }
+        }
+        #endregion
     }
 }

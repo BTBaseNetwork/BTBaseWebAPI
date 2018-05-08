@@ -26,7 +26,7 @@ namespace BTBaseWebAPI.Services
         public bool RechargeMember(BTBaseDbContext dbContext, BTMemberOrder order)
         {
             var listOrdered = from o in dbContext.BTMemberOrder where o.OrderKey == order.OrderKey select o.ID;
-            if (listOrdered.Any())
+            if (listOrdered.Count() > 0)
             {
                 //The Order Is Finished, Can't Request Same Order Twice
                 return false;

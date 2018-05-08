@@ -24,13 +24,4 @@ namespace BTBaseWebAPI.Models
             });
         }
     }
-
-    public partial class BTMember
-    {
-        public const int MEMBER_TYPE_LOGOUT = -1;
-        public const int MEMBER_TYPE_FREE = 0;
-        public const int MEMBER_TYPE_EXPIRED = 1;
-        public const int MEMBER_TYPE_PREMIUM = 2;
-        public const int MEMBER_TYPE_ADVANCED = 3;
-    }
 }

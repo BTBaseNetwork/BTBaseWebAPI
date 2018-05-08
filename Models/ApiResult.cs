@@ -6,4 +6,10 @@ namespace BTBaseWebAPI.Models
         public string msg;
         public object content;
     }
+
+    public class ErrorResult
+    {
+        public int errorCode;
+        public string error;
+    }
 }
