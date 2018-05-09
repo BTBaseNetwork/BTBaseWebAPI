@@ -4,6 +4,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 using BTBaseWebAPI.Models;
+using BTService;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.NodeServices;
 using Newtonsoft.Json;
@@ -34,23 +35,34 @@ namespace BTBaseWebAPI.Controllers.v1
         }
 
         [HttpPost("ExpiredDate/Order")]
-        public async Task<object> RechargeAsync(string productId, string channel, string receiptData, bool sandbox, [FromServices]INodeServices nodeService)
+        public async Task<object> RechargeAsync(string productId, string channel, string receiptData, bool sandbox)
         {
             switch (channel)
             {
-                case BTService.BTServiceConst.CHANNEL_APP_STORE:
-                    return await VerifyReceiptAppStoreAsync(productId, receiptData, sandbox);
-                default:
-                    return new ApiResult
-                    {
-                        code = this.SetResponseForbidden(),
-                        msg = "Unsupported Channel"
-                    };
+                case BTServiceConst.CHANNEL_APP_STORE: return await VerifyReceiptAppStoreAsync(productId, receiptData, sandbox);
+                default: return new ApiResult { code = this.SetResponseForbidden(), msg = "Unsupported Channel" };
             }
         }
 
-        #region iTunes Store
-        private async Task<object> VerifyReceiptAppStoreAsync(string productId, string receiptData, bool sandbox)
+        #region iTunes App Store
+        private async Task<ApiResult> VerifyReceiptAppStoreAsync(string productId, string receiptData, bool sandbox)
+        {
+            var res = await SendReceiptAppStoreAsync(productId, receiptData, sandbox);
+            if (res.code != 200)
+            {
+                if (((ErrorResult)res.content).errorCode == 21007)
+                {
+                    return await SendReceiptAppStoreAsync(productId, receiptData, true);
+                }
+                else if (((ErrorResult)res.content).errorCode == 21008)
+                {
+                    return await SendReceiptAppStoreAsync(productId, receiptData, false);
+                }
+            }
+            return res;
+        }
+
+        private async Task<ApiResult> SendReceiptAppStoreAsync(string productId, string receiptData, bool sandbox)
         {
             //购买凭证验证地址  
             const string certificateUrl = "https://buy.itunes.apple.com/verifyReceipt";
@@ -69,25 +81,26 @@ namespace BTBaseWebAPI.Controllers.v1
                 var statusCode = jsonResult.GetValue("status").Value<int>();
                 if (statusCode == 0)
                 {
-                    long transactionId = 0;
+                    string transactionId = null;
                     string receiptProductId = null;
-                    if (jsonResult["receipt"]["in_app"].HasValues)
+                    var receipts = jsonResult["receipt"]["in_app"].HasValues ? jsonResult["receipt"]["in_app"] : jsonResult["receipt"];
+
+                    foreach (var item in receipts.ToArray())
                     {
-                        transactionId = jsonResult["receipt"]["in_app"]["transaction_id"].Value<long>();
-                        receiptProductId = jsonResult["receipt"]["in_app"]["product_id"].Value<string>();
-                    }
-                    else
-                    {
-                        transactionId = jsonResult["receipt"]["transaction_id"].Value<long>();
-                        receiptProductId = jsonResult["receipt"]["product_id"].Value<string>();
+                        var product_id = item["product_id"].Value<string>();
+                        if (product_id == productId)
+                        {
+                            transactionId = item["transaction_id"].Value<string>().ToString();
+                            receiptProductId = product_id;
+                        }
                     }
 
                     BTMemberProduct product = null;
-                    if (productId == receiptProductId && BTMemberProduct.TryParseIAPProductId(productId, out product))
+                    if (!string.IsNullOrEmpty(receiptProductId) && BTMemberProduct.TryParseIAPProductId(productId, out product))
                     {
                         var suc = memberService.RechargeMember(dbContext, new BTMemberOrder
                         {
-                            OrderKey = transactionId.ToString(),
+                            OrderKey = transactionId,
                             AccountId = this.GetHeaderAccountId(),
                             ProductId = productId,
                             ReceiptData = receiptData,

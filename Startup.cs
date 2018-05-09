@@ -38,8 +38,6 @@ namespace BTBaseWebAPI
             {
                 builder.UseMySQL(Environment.GetEnvironmentVariable("MYSQL_CONSTR"));
             });
-            services.AddNodeServices();
-
         }
 
         private void TryConnectDB(IApplicationBuilder app)

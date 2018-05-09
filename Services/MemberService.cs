@@ -16,10 +16,6 @@ namespace BTBaseWebAPI.Services
                 AccountId = accountId,
                 Members = list.ToArray()
             };
-            foreach (var item in profile.Members)
-            {
-                item.ID = 0;
-            }
             return profile;
         }
 
