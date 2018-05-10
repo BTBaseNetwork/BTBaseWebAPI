@@ -123,5 +123,21 @@ namespace BTBaseWebAPI.Controllers.v1
                 content = accountService.UpdatePassword(dbContext, this.GetHeaderAccountId(), form.originPassword, form.newPassword)
             };
         }
+
+        [Authorize]
+        [HttpPost("Email")]
+        public object UpdateEmail([FromBody]string newEmail)
+        {
+
+            return null;
+        }
+
+        [Authorize]
+        [HttpPost("EmailVerifyCode")]
+        public object ConfirmUpdateEmail([FromBody]string verifyCode)
+        {
+
+            return null;
+        }
     }
 }

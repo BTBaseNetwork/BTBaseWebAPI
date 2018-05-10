@@ -11,7 +11,6 @@ using BTBaseServices;
 using BTBaseServices.Models;
 using BTBaseServices.DAL;
 using BTBaseServices.Services;
-using BTBaseServices;
 using Microsoft.AspNetCore.Authorization;
 
 namespace BTBaseWebAPI.Controllers.v1
