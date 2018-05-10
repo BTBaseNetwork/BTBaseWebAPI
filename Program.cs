@@ -19,8 +19,14 @@ namespace BTBaseWebAPI
 
         public static IWebHost BuildWebHost(string[] args)
         {
-            var config = new ConfigurationBuilder().SetBasePath(Directory.GetCurrentDirectory());
-            config.AddJsonFile("hosting.json");
+            var config = new ConfigurationBuilder()
+            .SetBasePath(Directory.GetCurrentDirectory())
+            .AddCommandLine(args);
+
+            if (File.Exists("hosting.json"))
+            {
+                config.AddJsonFile("hosting.json");
+            }
 
             return WebHost.CreateDefaultBuilder(args)
                 .UseConfiguration(config.Build())

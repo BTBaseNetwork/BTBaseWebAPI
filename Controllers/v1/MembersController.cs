@@ -3,26 +3,31 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
-using BTBaseWebAPI.Models;
-using BTService;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.NodeServices;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using BTBaseServices;
+using BTBaseServices.Models;
+using BTBaseServices.DAL;
+using BTBaseServices.Services;
+using BTBaseServices;
+using Microsoft.AspNetCore.Authorization;
 
 namespace BTBaseWebAPI.Controllers.v1
 {
     [Route("api/v1/[controller]")]
     public class MembersController : Controller
     {
-        private readonly DAL.BTBaseDbContext dbContext;
-        private readonly Services.MemberService memberService;
-        public MembersController(DAL.BTBaseDbContext dbContext, Services.MemberService memberService)
+        private readonly BTBaseDbContext dbContext;
+        private readonly MemberService memberService;
+        public MembersController(BTBaseDbContext dbContext, MemberService memberService)
         {
             this.dbContext = dbContext;
             this.memberService = memberService;
         }
 
+        [Authorize]
         [HttpGet("Profile")]
         public object GetProfile()
         {
@@ -34,6 +39,7 @@ namespace BTBaseWebAPI.Controllers.v1
             };
         }
 
+        [Authorize]
         [HttpPost("ExpiredDate/Order")]
         public async Task<object> RechargeAsync(string productId, string channel, string receiptData, bool sandbox)
         {

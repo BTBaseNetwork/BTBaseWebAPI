@@ -2,11 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using BTBaseWebAPI.Models;
 using Microsoft.AspNetCore.Mvc;
 using BTBaseWebAPI.Controllers;
-using BTBaseWebAPI.Services;
-using BTBaseWebAPI.DAL;
+using BTBaseServices.DAL;
+using BTBaseServices.Services;
+using BTBaseServices.Models;
+using Microsoft.AspNetCore.Authorization;
 
 namespace BTBaseWebAPI.Controllers.v1
 {
@@ -46,7 +47,7 @@ namespace BTBaseWebAPI.Controllers.v1
             {
                 UserName = username,
                 Nick = username,
-                Password = password,
+                Password = password
             };
 
             newAccount = accountService.CreateNewAccount(dbContext, newAccount);
@@ -63,6 +64,7 @@ namespace BTBaseWebAPI.Controllers.v1
 
         }
 
+        [Authorize]
         [HttpGet("Profile")]
         public object GetAccountProfile()
         {
@@ -94,6 +96,7 @@ namespace BTBaseWebAPI.Controllers.v1
             };
         }
 
+        [Authorize]
         [HttpPut("Nick")]
         public object UpdateNickName([FromBody]string newNick)
         {
@@ -110,6 +113,7 @@ namespace BTBaseWebAPI.Controllers.v1
             public string newPassword;
         }
 
+        [Authorize]
         [HttpPut("Password")]
         public object UpdatePassword([FromBody]UpdatePasswordFrom form)
         {
