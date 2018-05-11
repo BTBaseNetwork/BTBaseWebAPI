@@ -69,21 +69,27 @@ namespace BTBaseWebAPI.Controllers.v1
         public object GetAccountProfile()
         {
             var ac = accountService.GetProfile(dbContext, this.GetHeaderAccountId());
-            return new ApiResult
+            if (ac != null)
             {
-                code = this.SetResponseOK(),
-                msg = ac != null ? "Success" : "No Account",
-                content = ac == null ? null : new
+                return new ApiResult
                 {
-                    AccountId = ac.AccountId,
-                    UserName = ac.UserName,
-                    AccountTypes = ac.AccountTypes,
-                    Nick = ac.Nick,
-                    Email = ac.Email,
-                    Mobile = ac.Mobile,
-                    SignDateTs = ac.SignDateTs
-                }
-            };
+                    code = this.SetResponseOK(),
+                    content = new
+                    {
+                        AccountId = ac.AccountId,
+                        UserName = ac.UserName,
+                        AccountTypes = ac.AccountTypes,
+                        Nick = ac.Nick,
+                        Email = ac.Email,
+                        Mobile = ac.Mobile,
+                        SignDateTs = ac.SignDateTs
+                    }
+                };
+            }
+            else
+            {
+                return new ApiResult { code = this.SetResponseNotFound(), msg = "No Such Account" };
+            }
         }
 
         [HttpGet("Username/{username}")]

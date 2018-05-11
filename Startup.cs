@@ -34,6 +34,7 @@ namespace BTBaseWebAPI
 
         public IConfiguration Configuration { get; }
         public IServiceCollection ServiceCollection { get; private set; }
+        public IApplicationBuilder ApplicatonBuilder { get; private set; }
 
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
@@ -54,24 +55,26 @@ namespace BTBaseWebAPI
             {
                 builder.UseMySQL(Environment.GetEnvironmentVariable("MYSQL_CONSTR"));
             });
+            AddAuthentication(this.ServiceCollection);
         }
 
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IHostingEnvironment env)
         {
+            ApplicatonBuilder = app;
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
             }
+            TryConnectDB();
+            app.UseAuthentication();
             app.UseMvc();
-            TryConnectDB(app);
-            AddAuthentication(app, this.ServiceCollection);
         }
 
-        private void TryConnectDB(IApplicationBuilder app)
+        private void TryConnectDB()
         {
-            using (var sc = app.ApplicationServices.CreateScope())
+            using (var sc = ApplicatonBuilder.ApplicationServices.CreateScope())
             {
                 try
                 {
@@ -86,11 +89,11 @@ namespace BTBaseWebAPI
             }
         }
 
-        private void AddAuthentication(IApplicationBuilder app, IServiceCollection services)
+        private void AddAuthentication(IServiceCollection services)
         {
-            var securityKey = GetIssuerSigningKey(app.ApplicationServices);
-            services.AddAuthentication().AddJwtBearer(jwtOptions =>
+            services.AddAuthentication("Bearer").AddJwtBearer(jwtOptions =>
             {
+                var securityKey = GetIssuerSigningKey(ApplicatonBuilder.ApplicationServices);
                 jwtOptions.TokenValidationParameters = new TokenValidationParameters
                 {
                     ValidateIssuerSigningKey = true,
@@ -107,28 +110,9 @@ namespace BTBaseWebAPI
 
         private SecurityKey GetIssuerSigningKey(IServiceProvider serviceProvider)
         {
-            using (var sc = serviceProvider.CreateScope())
-            {
-                var dbContext = sc.ServiceProvider.GetService<BTBaseDbContext>();
-                SecurityKeychain signingKey;
-                try
-                {
-                    signingKey = dbContext.SecurityKeychain.First(x => x.Name == SERVER_NAME);
-                }
-                catch (System.InvalidOperationException)
-                {
-                    signingKey = new SecurityKeychain
-                    {
-                        Name = SERVER_NAME,
-                        Note = "Use for issuer signing of BTBaseWebAPI"
-                    };
-                    signingKey.ResetNewRSAKeys();
-                    var res = dbContext.SecurityKeychain.Add(signingKey);
-                    signingKey = res.Entity;
-                    dbContext.SaveChanges();
-                }
-                return new RsaSecurityKey(signingKey.ReadRSAParameters(false));
-            }
+            var pubkeyBase64 = Environment.GetEnvironmentVariable("ISSUER_SIGNING_KEY") ?? Configuration.GetValue<string>("issuer_signing_key");
+            var rsaParam = new SecurityKeychain { PublicKey = pubkeyBase64 }.ReadRSAParameters(false);
+            return new RsaSecurityKey(rsaParam);
         }
     }
 }

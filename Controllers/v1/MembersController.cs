@@ -55,11 +55,11 @@ namespace BTBaseWebAPI.Controllers.v1
             var res = await SendReceiptAppStoreAsync(productId, receiptData, sandbox);
             if (res.code != 200)
             {
-                if (((ErrorResult)res.content).errorCode == 21007)
+                if (res.error.code == 21007)
                 {
                     return await SendReceiptAppStoreAsync(productId, receiptData, true);
                 }
-                else if (((ErrorResult)res.content).errorCode == 21008)
+                else if (res.error.code == 21008)
                 {
                     return await SendReceiptAppStoreAsync(productId, receiptData, false);
                 }
@@ -119,17 +119,17 @@ namespace BTBaseWebAPI.Controllers.v1
                         }
                         else
                         {
-                            return new ApiResult { code = 404, content = new ErrorResult { errorCode = 404, error = "Is A Completed Order" } };
+                            return new ApiResult { code = 404, error = new ErrorResult { code = 404, msg = "Is A Completed Order" } };
                         }
                     }
                     else
                     {
-                        return new ApiResult { code = 400, content = new ErrorResult { errorCode = 400, error = "Unmatched Product Id" } };
+                        return new ApiResult { code = 400, error = new ErrorResult { code = 400, msg = "Unmatched Product Id" } };
                     }
                 }
                 else
                 {
-                    return new ApiResult { code = 400, content = new ErrorResult { errorCode = statusCode } };
+                    return new ApiResult { code = 400, error = new ErrorResult { code = statusCode } };
                 }
 
             }
