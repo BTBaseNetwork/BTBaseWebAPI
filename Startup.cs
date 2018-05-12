@@ -24,8 +24,8 @@ namespace BTBaseWebAPI
 {
     public class Startup
     {
-        private readonly string SERVER_NAME = "BTBaseWebAPI";
-        private readonly string VALID_ISSUER = "BTBaseAuth";
+        private readonly string AppName = "BTBaseWebAPI";
+        private readonly string ValidIssuer = "BTBaseAuth";
 
         public Startup(IConfiguration configuration)
         {
@@ -57,7 +57,6 @@ namespace BTBaseWebAPI
             });
             AddAuthentication(this.ServiceCollection);
         }
-
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IHostingEnvironment env)
@@ -99,9 +98,9 @@ namespace BTBaseWebAPI
                     ValidateIssuerSigningKey = true,
                     IssuerSigningKey = securityKey,
                     ValidateAudience = true,
-                    ValidAudience = SERVER_NAME,
+                    ValidAudience = AppName,
                     ValidateIssuer = true,
-                    ValidIssuer = VALID_ISSUER,
+                    ValidIssuer = ValidIssuer,
                     ValidateLifetime = true,
                     ClockSkew = TimeSpan.FromMinutes(5)
                 };
@@ -111,7 +110,9 @@ namespace BTBaseWebAPI
         private SecurityKey GetIssuerSigningKey(IServiceProvider serviceProvider)
         {
             var pubkeyBase64 = Environment.GetEnvironmentVariable("ISSUER_SIGNING_KEY") ?? Configuration.GetValue<string>("issuer_signing_key");
-            var rsaParam = new SecurityKeychain { PublicKey = pubkeyBase64 }.ReadRSAParameters(false);
+            var rsaParam =
+            new SecurityKeychain { PublicKey = pubkeyBase64, Algorithm = SecurityKeychainRSAExtensions.ALGORITHM_RSA }
+            .ReadRSAParameters(false);
             return new RsaSecurityKey(rsaParam);
         }
     }

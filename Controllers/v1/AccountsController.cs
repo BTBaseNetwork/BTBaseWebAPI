@@ -8,6 +8,7 @@ using BTBaseServices.DAL;
 using BTBaseServices.Services;
 using BTBaseServices.Models;
 using Microsoft.AspNetCore.Authorization;
+using System.Net.Http;
 
 namespace BTBaseWebAPI.Controllers.v1
 {
@@ -38,7 +39,7 @@ namespace BTBaseWebAPI.Controllers.v1
                 return new ApiResult { code = this.SetResponseForbidden(), msg = "Password Is Unsupport" };
             }
 
-            if (!accountService.IsUsernameAvaiable(dbContext, username))
+            if (accountService.IsUsernameExists(dbContext, username))
             {
                 return new ApiResult { code = this.SetResponseForbidden(), msg = "User Name Is Registed" };
             }
@@ -93,54 +94,56 @@ namespace BTBaseWebAPI.Controllers.v1
         }
 
         [HttpGet("Username/{username}")]
-        public object CheckUsernameAvaiable(string username)
+        public object CheckUsernameExists(string username)
         {
+            var found = accountService.IsUsernameExists(dbContext, username);
             return new ApiResult
             {
-                code = this.SetResponseOK(),
-                content = accountService.IsUsernameAvaiable(dbContext, username)
+                code = found ? this.SetResponseOK() : this.SetResponseNotFound()
             };
         }
 
         [Authorize]
-        [HttpPut("Nick")]
-        public object UpdateNickName([FromBody]string newNick)
+        [HttpPost("Nick")]
+        public object UpdateNickName(string newNick)
         {
+            var updated = accountService.UpdateNick(dbContext, this.GetHeaderAccountId(), newNick);
             return new ApiResult
             {
-                code = this.SetResponseOK(),
-                content = accountService.UpdateNick(dbContext, this.GetHeaderAccountId(), newNick)
+                code = updated ? this.SetResponseOK() : this.SetResponseNotFound(),
+                content = updated,
+                error = updated ? null : new ErrorResult { code = 400, msg = "No Account" }
             };
         }
 
-        public class UpdatePasswordFrom
-        {
-            public string originPassword;
-            public string newPassword;
-        }
-
         [Authorize]
-        [HttpPut("Password")]
-        public object UpdatePassword([FromBody]UpdatePasswordFrom form)
+        [HttpPost("Password")]
+        public object UpdatePassword(string originPassword, string newPassword)
         {
+            var updated = accountService.UpdatePassword(dbContext, this.GetHeaderAccountId(), originPassword, newPassword);
             return new ApiResult
             {
-                code = this.SetResponseOK(),
-                content = accountService.UpdatePassword(dbContext, this.GetHeaderAccountId(), form.originPassword, form.newPassword)
+                code = updated ? this.SetResponseOK() : this.SetResponseForbidden(),
+                content = updated,
+                error = updated ? null : new ErrorResult { code = 403, msg = "Origin Password Not Match" }
             };
         }
 
         [Authorize]
         [HttpPost("Email")]
-        public object UpdateEmail([FromBody]string newEmail)
+        public object RequestUpdateEmail(string newEmail)
         {
+
+            
+
+            
 
             return null;
         }
 
         [Authorize]
         [HttpPost("EmailVerifyCode")]
-        public object ConfirmUpdateEmail([FromBody]string verifyCode)
+        public object ConfirmUpdateEmail(string verifyCode)
         {
 
             return null;
