@@ -15,19 +15,9 @@ namespace BTBaseWebAPI.Controllers.v1
     [Route("api/v1/[controller]")]
     public class AccountsController : Controller
     {
-        private readonly BTBaseDbContext dbContext;
-        private readonly AccountService accountService;
-        private readonly SessionService sessionService;
-
-        public AccountsController(BTBaseDbContext dbContext, AccountService accountService, SessionService sessionService)
-        {
-            this.dbContext = dbContext;
-            this.accountService = accountService;
-            this.sessionService = sessionService;
-        }
 
         [HttpPost]
-        public object Regist(string username, string password)
+        public object Regist([FromServices]BTBaseDbContext dbContext, [FromServices]AccountService accountService, string username, string password, string email)
         {
             if (!CommonRegexTestUtil.TestPattern(username, CommonRegexTestUtil.PATTERN_USERNAME))
             {
@@ -39,6 +29,11 @@ namespace BTBaseWebAPI.Controllers.v1
                 return new ApiResult { code = this.SetResponseForbidden(), msg = "Password Is Unsupport" };
             }
 
+            if (!CommonRegexTestUtil.TestPattern(email, CommonRegexTestUtil.PATTERN_EMAIL))
+            {
+                return new ApiResult { code = this.SetResponseForbidden(), msg = "Email Is Unsupport" };
+            }
+
             if (accountService.IsUsernameExists(dbContext, username))
             {
                 return new ApiResult { code = this.SetResponseForbidden(), msg = "User Name Is Registed" };
@@ -48,7 +43,8 @@ namespace BTBaseWebAPI.Controllers.v1
             {
                 UserName = username,
                 Nick = username,
-                Password = password
+                Password = password,
+                Email = email
             };
 
             newAccount = accountService.CreateNewAccount(dbContext, newAccount);
@@ -67,7 +63,7 @@ namespace BTBaseWebAPI.Controllers.v1
 
         [Authorize]
         [HttpGet("Profile")]
-        public object GetAccountProfile()
+        public object GetAccountProfile([FromServices]BTBaseDbContext dbContext, [FromServices]AccountService accountService)
         {
             var ac = accountService.GetProfile(dbContext, this.GetHeaderAccountId());
             if (ac != null)
@@ -94,7 +90,7 @@ namespace BTBaseWebAPI.Controllers.v1
         }
 
         [HttpGet("Username/{username}")]
-        public object CheckUsernameExists(string username)
+        public object CheckUsernameExists([FromServices]BTBaseDbContext dbContext, [FromServices]AccountService accountService, string username)
         {
             var found = accountService.IsUsernameExists(dbContext, username);
             return new ApiResult
@@ -105,7 +101,7 @@ namespace BTBaseWebAPI.Controllers.v1
 
         [Authorize]
         [HttpPost("Nick")]
-        public object UpdateNickName(string newNick)
+        public object UpdateNickName([FromServices]BTBaseDbContext dbContext, [FromServices]AccountService accountService, string newNick)
         {
             var updated = accountService.UpdateNick(dbContext, this.GetHeaderAccountId(), newNick);
             return new ApiResult
@@ -118,7 +114,7 @@ namespace BTBaseWebAPI.Controllers.v1
 
         [Authorize]
         [HttpPost("Password")]
-        public object UpdatePassword(string originPassword, string newPassword)
+        public object UpdatePassword([FromServices]BTBaseDbContext dbContext, [FromServices]AccountService accountService, string originPassword, string newPassword)
         {
             var updated = accountService.UpdatePassword(dbContext, this.GetHeaderAccountId(), originPassword, newPassword);
             return new ApiResult
@@ -129,24 +125,75 @@ namespace BTBaseWebAPI.Controllers.v1
             };
         }
 
-        [Authorize]
-        [HttpPost("Email")]
-        public object RequestUpdateEmail(string newEmail)
+        [HttpPost("NewPassword")]
+        public object ResetPassword([FromServices]BTBaseDbContext dbContext, [FromServices]AccountService accountService, [FromServices]VerifyCodeService verifyCodeService,
+        string verifyCode, string accountId, string newPassword)
         {
+            if (verifyCodeService.VerifyCode(dbContext, accountId, BTVerifyCode.REQ_FOR_RESET_PASSWORD, verifyCode))
+            {
+                var updated = accountService.ResetPassword(dbContext, accountId, newPassword);
+                return new ApiResult
+                {
+                    code = updated ? this.SetResponseOK() : this.SetResponseForbidden(),
+                    content = updated,
+                    error = updated ? null : new ErrorResult { code = 403, msg = "Origin Password Not Match" }
+                };
+            }
+            else
+            {
+                return new ApiResult
+                {
+                    code = this.SetResponseForbidden(),
+                    error = new ErrorResult { code = 403, msg = "Authentication Verify Failed" }
+                };
+            }
+        }
 
-            
-
-            
-
-            return null;
+        [HttpPost("VerifyCode/NewPassowrd/Email")]
+        public async Task<object> RequestResetPasswordVerifyCodeAsync([FromServices]BTBaseDbContext dbContext, [FromServices]AccountService accountService, [FromServices]VerifyCodeService verifyCodeService,
+        string accountId, string email)
+        {
+            var account = accountService.GetProfile(dbContext, accountId);
+            if (account != null && string.IsNullOrWhiteSpace(account.Email) && account.Email == email)
+            {
+                var code = verifyCodeService.RequestNewVerifyCode(dbContext, accountId, BTVerifyCode.REQ_FOR_RESET_PASSWORD, BTVerifyCode.REC_TYPE_EMAIL, email, TimeSpan.FromDays(1));
+                if (code != null && await verifyCodeService.SendVerifyCodeAsync(code))
+                {
+                    return new ApiResult
+                    {
+                        code = this.SetResponseOK()
+                    };
+                }
+                else
+                {
+                    return new ApiResult
+                    {
+                        code = this.SetResponseNotFound(),
+                        error = new ErrorResult { code = 400, msg = "Request Error" }
+                    };
+                }
+            }
+            else
+            {
+                return new ApiResult
+                {
+                    code = this.SetResponseForbidden(),
+                    error = new ErrorResult { code = 403, msg = "No Account" }
+                };
+            }
         }
 
         [Authorize]
-        [HttpPost("EmailVerifyCode")]
-        public object ConfirmUpdateEmail(string verifyCode)
+        [HttpPost("NewEmail")]
+        public object UpdateEmail([FromServices]BTBaseDbContext dbContext, [FromServices]AccountService accountService, string password, string originEmail, string newEmail)
         {
-
-            return null;
+            var updated = accountService.UpdateEmail(dbContext, this.GetHeaderAccountId(), password, originEmail, newEmail);
+            return new ApiResult
+            {
+                code = updated ? this.SetResponseOK() : this.SetResponseForbidden(),
+                content = updated,
+                error = updated ? null : new ErrorResult { code = 403, msg = "Forbidden" }
+            };
         }
     }
 }
