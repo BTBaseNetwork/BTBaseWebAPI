@@ -153,11 +153,56 @@ namespace BTBaseWebAPI.Controllers.v1
         public async Task<object> RequestResetPasswordVerifyCodeAsync([FromServices]BTBaseDbContext dbContext, [FromServices]AccountService accountService, [FromServices]VerifyCodeService verifyCodeService,
         string accountId, string email)
         {
+            return await SendVerifyCodeByAliMailAsync(dbContext, accountService, verifyCodeService, accountId, email, BTVerifyCode.REQ_FOR_RESET_PASSWORD);
+        }
+
+        [Authorize]
+        [HttpPost("NewEmail")]
+        public object UpdateEmail([FromServices]BTBaseDbContext dbContext, [FromServices]AccountService accountService, [FromServices]VerifyCodeService verifyCodeService,
+        string verifyCode, string newEmail)
+        {
+            if (verifyCodeService.VerifyCode(dbContext, this.GetHeaderAccountId(), BTVerifyCode.REQ_FOR_RESET_EMAIL, verifyCode))
+            {
+                var updated = accountService.UpdateEmail(dbContext, this.GetHeaderAccountId(), newEmail);
+                return new ApiResult
+                {
+                    code = updated ? this.SetResponseOK() : this.SetResponseForbidden(),
+                    content = updated,
+                    error = updated ? null : new ErrorResult { code = 403, msg = "Origin Password Not Match" }
+                };
+            }
+            else
+            {
+                return new ApiResult
+                {
+                    code = this.SetResponseForbidden(),
+                    error = new ErrorResult { code = 403, msg = "Authentication Verify Failed" }
+                };
+            }
+        }
+
+        [Authorize]
+        [HttpPost("VerifyCode/NewEmail/Email")]
+        public async Task<object> RequestResetEmailVerifyCodeAsync([FromServices]BTBaseDbContext dbContext, [FromServices]AccountService accountService, [FromServices]VerifyCodeService verifyCodeService,
+        string accountId, string email)
+        {
+            return await SendVerifyCodeByAliMailAsync(dbContext, accountService, verifyCodeService, accountId, email, BTVerifyCode.REQ_FOR_RESET_EMAIL);
+        }
+
+        #region Send Verify Code
+        private async Task<object> SendVerifyCodeByAliMailAsync(BTBaseDbContext dbContext, AccountService accountService, VerifyCodeService verifyCodeService, string accountId, string email, int reqType)
+        {
             var account = accountService.GetProfile(dbContext, accountId);
             if (account != null && string.IsNullOrWhiteSpace(account.Email) && account.Email == email)
             {
-                var code = verifyCodeService.RequestNewVerifyCode(dbContext, accountId, BTVerifyCode.REQ_FOR_RESET_PASSWORD, BTVerifyCode.REC_TYPE_EMAIL, email, TimeSpan.FromDays(1));
-                if (code != null && await verifyCodeService.SendVerifyCodeAsync(code))
+                var code = verifyCodeService.RequestNewVerifyCode(dbContext, accountId, reqType, BTVerifyCode.REC_TYPE_EMAIL, email, TimeSpan.FromDays(1));
+                var aliMailSenderInfo = new AliApilUtils.CommonReqFields
+                {
+                    AccessKeyId = Environment.GetEnvironmentVariable("ALIYUN_DM_ACCESSKEY"),
+                    RegionId = Environment.GetEnvironmentVariable("ALIYUN_DM_REGION"),
+                    AccesskeySecret = Environment.GetEnvironmentVariable("ALIYUN_DM_ACCESSKEY_SECRET"),
+                };
+                if (code != null && await verifyCodeService.SendVerifyCodeAsync(code, aliMailSenderInfo))
                 {
                     return new ApiResult
                     {
@@ -182,18 +227,6 @@ namespace BTBaseWebAPI.Controllers.v1
                 };
             }
         }
-
-        [Authorize]
-        [HttpPost("NewEmail")]
-        public object UpdateEmail([FromServices]BTBaseDbContext dbContext, [FromServices]AccountService accountService, string password, string originEmail, string newEmail)
-        {
-            var updated = accountService.UpdateEmail(dbContext, this.GetHeaderAccountId(), password, originEmail, newEmail);
-            return new ApiResult
-            {
-                code = updated ? this.SetResponseOK() : this.SetResponseForbidden(),
-                content = updated,
-                error = updated ? null : new ErrorResult { code = 403, msg = "Forbidden" }
-            };
-        }
+        #endregion
     }
 }
