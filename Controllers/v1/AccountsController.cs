@@ -159,9 +159,9 @@ namespace BTBaseWebAPI.Controllers.v1
         [Authorize]
         [HttpPost("NewEmail")]
         public object UpdateEmail([FromServices]BTBaseDbContext dbContext, [FromServices]AccountService accountService, [FromServices]SecurityCodeService SecurityCodeService,
-        string verifyCode, string newEmail)
+        string securityCode, string newEmail)
         {
-            if (SecurityCodeService.VerifyCode(dbContext, this.GetHeaderAccountId(), BTSecurityCode.REQ_FOR_RESET_EMAIL, verifyCode))
+            if (SecurityCodeService.VerifyCode(dbContext, this.GetHeaderAccountId(), BTSecurityCode.REQ_FOR_RESET_EMAIL, securityCode))
             {
                 var updated = accountService.UpdateEmail(dbContext, this.GetHeaderAccountId(), newEmail);
                 return new ApiResult
