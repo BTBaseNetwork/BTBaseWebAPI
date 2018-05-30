@@ -77,8 +77,8 @@ namespace BTBaseWebAPI.Controllers.v1
                         UserName = ac.UserName,
                         AccountTypes = ac.AccountTypes,
                         Nick = ac.Nick,
-                        Email = ac.Email,
-                        Mobile = ac.Mobile,
+                        Email = ac.GetPartitialHidedEmail(),
+                        Mobile = ac.GetPartitialHidedMobile(),
                         SignDateTs = ac.SignDateTs
                     }
                 };
@@ -114,9 +114,9 @@ namespace BTBaseWebAPI.Controllers.v1
 
         [Authorize]
         [HttpPost("Password")]
-        public object UpdatePassword([FromServices]BTBaseDbContext dbContext, [FromServices]AccountService accountService, string originPassword, string newPassword)
+        public object UpdatePassword([FromServices]BTBaseDbContext dbContext, [FromServices]AccountService accountService, string password, string newPassword)
         {
-            var updated = accountService.UpdatePassword(dbContext, this.GetHeaderAccountId(), originPassword, newPassword);
+            var updated = accountService.UpdatePassword(dbContext, this.GetHeaderAccountId(), password, newPassword);
             return new ApiResult
             {
                 code = updated ? this.SetResponseOK() : this.SetResponseForbidden(),
@@ -126,10 +126,10 @@ namespace BTBaseWebAPI.Controllers.v1
         }
 
         [HttpPost("NewPassword")]
-        public object ResetPassword([FromServices]BTBaseDbContext dbContext, [FromServices]AccountService accountService, [FromServices]VerifyCodeService verifyCodeService,
-        string verifyCode, string accountId, string newPassword)
+        public object ResetPassword([FromServices]BTBaseDbContext dbContext, [FromServices]AccountService accountService, [FromServices]SecurityCodeService SecurityCodeService,
+        string securityCode, string accountId, string newPassword)
         {
-            if (verifyCodeService.VerifyCode(dbContext, accountId, BTVerifyCode.REQ_FOR_RESET_PASSWORD, verifyCode))
+            if (SecurityCodeService.VerifyCode(dbContext, accountId, BTSecurityCode.REQ_FOR_RESET_PASSWORD, securityCode))
             {
                 var updated = accountService.ResetPassword(dbContext, accountId, newPassword);
                 return new ApiResult
@@ -149,19 +149,19 @@ namespace BTBaseWebAPI.Controllers.v1
             }
         }
 
-        [HttpPost("VerifyCode/NewPassowrd/Email")]
-        public async Task<object> RequestResetPasswordVerifyCodeAsync([FromServices]BTBaseDbContext dbContext, [FromServices]AccountService accountService, [FromServices]VerifyCodeService verifyCodeService,
+        [HttpPost("SecurityCode/NewPassowrd/Email")]
+        public async Task<object> RequestResetPasswordVerifyCodeAsync([FromServices]BTBaseDbContext dbContext, [FromServices]AccountService accountService, [FromServices]SecurityCodeService SecurityCodeService,
         string accountId, string email)
         {
-            return await SendVerifyCodeByAliMailAsync(dbContext, accountService, verifyCodeService, accountId, email, BTVerifyCode.REQ_FOR_RESET_PASSWORD);
+            return await SendVerifyCodeByAliMailAsync(dbContext, accountService, SecurityCodeService, accountId, email, BTSecurityCode.REQ_FOR_RESET_PASSWORD);
         }
 
         [Authorize]
         [HttpPost("NewEmail")]
-        public object UpdateEmail([FromServices]BTBaseDbContext dbContext, [FromServices]AccountService accountService, [FromServices]VerifyCodeService verifyCodeService,
+        public object UpdateEmail([FromServices]BTBaseDbContext dbContext, [FromServices]AccountService accountService, [FromServices]SecurityCodeService SecurityCodeService,
         string verifyCode, string newEmail)
         {
-            if (verifyCodeService.VerifyCode(dbContext, this.GetHeaderAccountId(), BTVerifyCode.REQ_FOR_RESET_EMAIL, verifyCode))
+            if (SecurityCodeService.VerifyCode(dbContext, this.GetHeaderAccountId(), BTSecurityCode.REQ_FOR_RESET_EMAIL, verifyCode))
             {
                 var updated = accountService.UpdateEmail(dbContext, this.GetHeaderAccountId(), newEmail);
                 return new ApiResult
@@ -182,27 +182,27 @@ namespace BTBaseWebAPI.Controllers.v1
         }
 
         [Authorize]
-        [HttpPost("VerifyCode/NewEmail/Email")]
-        public async Task<object> RequestResetEmailVerifyCodeAsync([FromServices]BTBaseDbContext dbContext, [FromServices]AccountService accountService, [FromServices]VerifyCodeService verifyCodeService,
-        string accountId, string email)
+        [HttpPost("SecurityCode/NewEmail/Email")]
+        public async Task<object> RequestResetEmailVerifyCodeAsync([FromServices]BTBaseDbContext dbContext, [FromServices]AccountService accountService, [FromServices]SecurityCodeService SecurityCodeService, string email)
         {
-            return await SendVerifyCodeByAliMailAsync(dbContext, accountService, verifyCodeService, accountId, email, BTVerifyCode.REQ_FOR_RESET_EMAIL);
+            return await SendVerifyCodeByAliMailAsync(dbContext, accountService, SecurityCodeService, this.GetHeaderAccountId(), email, BTSecurityCode.REQ_FOR_RESET_EMAIL);
         }
 
         #region Send Verify Code
-        private async Task<object> SendVerifyCodeByAliMailAsync(BTBaseDbContext dbContext, AccountService accountService, VerifyCodeService verifyCodeService, string accountId, string email, int reqType)
+        private async Task<object> SendVerifyCodeByAliMailAsync(BTBaseDbContext dbContext, AccountService accountService, SecurityCodeService SecurityCodeService, string accountId, string email, int reqType)
         {
             var account = accountService.GetProfile(dbContext, accountId);
-            if (account != null && string.IsNullOrWhiteSpace(account.Email) && account.Email == email)
+            if (account != null && !string.IsNullOrWhiteSpace(account.Email) && account.Email.ToLower() == email.ToLower())
             {
-                var code = verifyCodeService.RequestNewVerifyCode(dbContext, accountId, reqType, BTVerifyCode.REC_TYPE_EMAIL, email, TimeSpan.FromDays(1));
+                var code = SecurityCodeService.RequestNewCode(dbContext, accountId, reqType, BTSecurityCode.REC_TYPE_EMAIL, email, TimeSpan.FromDays(1));
                 var aliMailSenderInfo = new AliApilUtils.CommonReqFields
                 {
                     AccessKeyId = Environment.GetEnvironmentVariable("ALIYUN_DM_ACCESSKEY"),
                     RegionId = Environment.GetEnvironmentVariable("ALIYUN_DM_REGION"),
                     AccesskeySecret = Environment.GetEnvironmentVariable("ALIYUN_DM_ACCESSKEY_SECRET"),
                 };
-                if (code != null && await verifyCodeService.SendVerifyCodeAsync(code, aliMailSenderInfo))
+
+                if (code != null && await SecurityCodeService.SendCodeAsync(code, aliMailSenderInfo))
                 {
                     return new ApiResult
                     {
@@ -213,8 +213,8 @@ namespace BTBaseWebAPI.Controllers.v1
                 {
                     return new ApiResult
                     {
-                        code = this.SetResponseNotFound(),
-                        error = new ErrorResult { code = 400, msg = "Request Error" }
+                        code = this.SetResponseServerError(),
+                        error = new ErrorResult { code = 500, msg = "Request Error" }
                     };
                 }
             }
@@ -223,7 +223,7 @@ namespace BTBaseWebAPI.Controllers.v1
                 return new ApiResult
                 {
                     code = this.SetResponseForbidden(),
-                    error = new ErrorResult { code = 403, msg = "No Account" }
+                    error = new ErrorResult { code = 403, msg = "No Account Match Email" }
                 };
             }
         }

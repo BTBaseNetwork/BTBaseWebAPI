@@ -15,6 +15,10 @@ namespace BTBaseWebAPI.Controllers
         {
             return controller.SetResponseStatusCode((int)statusCode);
         }
+        public static int SetResponseServerError(this Controller controller)
+        {
+            return controller.SetResponseStatusCode(HttpStatusCode.InternalServerError);
+        }
 
         public static int SetResponseOK(this Controller controller)
         {
