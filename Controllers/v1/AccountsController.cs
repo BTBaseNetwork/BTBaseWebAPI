@@ -71,7 +71,7 @@ namespace BTBaseWebAPI.Controllers.v1
                 ReplyToAddress = false,
                 AddressType = AliApilUtils.AliMail.ADDR_TYPE_ACCOUNT,
                 ToAddress = newAccount.Email,
-                FromAlias = "Bluetime Game",
+                FromAlias = "Bluetime Admin",
                 Subject = "Thanks for sign up Bluetime",
                 HtmlBody = string.Format("<p>Account ID:{0}</p><br/><p>User Name:{1}</p><br/>", newAccount.AccountId, newAccount.UserName),
                 ClickTrace = AliApilUtils.AliMail.CLICK_TRACE_OFF
