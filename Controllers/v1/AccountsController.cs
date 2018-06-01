@@ -71,9 +71,9 @@ namespace BTBaseWebAPI.Controllers.v1
                 ReplyToAddress = false,
                 AddressType = AliApilUtils.AliMail.ADDR_TYPE_ACCOUNT,
                 ToAddress = newAccount.Email,
-                FromAlias = "Bluetime Admin",
-                Subject = "Thanks for sign up Bluetime",
-                HtmlBody = string.Format("<p>Account ID:{0}</p><br/><p>User Name:{1}</p><br/>", newAccount.AccountId, newAccount.UserName),
+                FromAlias = "Bluetime",
+                Subject = "Thanks for sign up Bluetime Game Service",
+                HtmlBody = string.Format("<p>Account ID:{0}</p><p>Username:{1}</p><p>It is recommended that you keep this email to retrieve your account ID and username.</p>", newAccount.AccountId, newAccount.UserName),
                 ClickTrace = AliApilUtils.AliMail.CLICK_TRACE_OFF
             };
 
@@ -163,9 +163,9 @@ namespace BTBaseWebAPI.Controllers.v1
                 var updated = accountService.ResetPassword(dbContext, accountId, newPassword);
                 return new ApiResult
                 {
-                    code = updated ? this.SetResponseOK() : this.SetResponseForbidden(),
+                    code = updated ? this.SetResponseOK() : this.SetResponseNotFound(),
                     content = updated,
-                    error = updated ? null : new ErrorResult { code = 403, msg = "Origin Password Not Match" }
+                    error = updated ? null : new ErrorResult { code = 404, msg = "No Account" }
                 };
             }
             else
@@ -173,7 +173,7 @@ namespace BTBaseWebAPI.Controllers.v1
                 return new ApiResult
                 {
                     code = this.SetResponseForbidden(),
-                    error = new ErrorResult { code = 403, msg = "Authentication Verify Failed" }
+                    error = new ErrorResult { code = 403, msg = "Code Verify Failed" }
                 };
             }
         }
@@ -195,9 +195,9 @@ namespace BTBaseWebAPI.Controllers.v1
                 var updated = accountService.UpdateEmail(dbContext, this.GetHeaderAccountId(), newEmail);
                 return new ApiResult
                 {
-                    code = updated ? this.SetResponseOK() : this.SetResponseForbidden(),
+                    code = updated ? this.SetResponseOK() : this.SetResponseNotFound(),
                     content = updated,
-                    error = updated ? null : new ErrorResult { code = 403, msg = "Origin Password Not Match" }
+                    error = updated ? null : new ErrorResult { code = 404, msg = "No Account" }
                 };
             }
             else
@@ -205,7 +205,7 @@ namespace BTBaseWebAPI.Controllers.v1
                 return new ApiResult
                 {
                     code = this.SetResponseForbidden(),
-                    error = new ErrorResult { code = 403, msg = "Authentication Verify Failed" }
+                    error = new ErrorResult { code = 403, msg = "Code Verify Failed" }
                 };
             }
         }
