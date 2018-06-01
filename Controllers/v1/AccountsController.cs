@@ -48,6 +48,7 @@ namespace BTBaseWebAPI.Controllers.v1
             };
 
             newAccount = accountService.CreateNewAccount(dbContext, newAccount);
+            SendWelcomeSignUpEmail(newAccount);
             return new ApiResult
             {
                 code = this.SetResponseOK(),
@@ -59,6 +60,34 @@ namespace BTBaseWebAPI.Controllers.v1
                 }
             };
 
+        }
+
+        private void SendWelcomeSignUpEmail(BTAccount newAccount)
+        {
+            var mail = new AliApilUtils.AliMail
+            {
+                Action = "SingleSendMail",
+                AccountName = "admin@btbase.mobi",
+                ReplyToAddress = false,
+                AddressType = AliApilUtils.AliMail.ADDR_TYPE_ACCOUNT,
+                ToAddress = newAccount.Email,
+                FromAlias = "Bluetime Game Service",
+                Subject = "Thanks for sign up Bluetime",
+                HtmlBody = string.Format("<p>Account ID:{0}</p><br/><p>User Name:{1}</p><br/>", newAccount.AccountId, newAccount.UserName),
+                ClickTrace = AliApilUtils.AliMail.CLICK_TRACE_OFF
+            };
+
+            var comFields = new AliApilUtils.CommonReqFields
+            {
+                AccessKeyId = Environment.GetEnvironmentVariable("ALIYUN_DM_ACCESSKEY"),
+                RegionId = Environment.GetEnvironmentVariable("ALIYUN_DM_REGION"),
+                AccesskeySecret = Environment.GetEnvironmentVariable("ALIYUN_DM_ACCESSKEY_SECRET"),
+            };
+
+            Task.Run(async () =>
+            {
+                await AliApilUtils.SendMailAsync(comFields, mail);
+            });
         }
 
         [Authorize]
@@ -149,7 +178,7 @@ namespace BTBaseWebAPI.Controllers.v1
             }
         }
 
-        [HttpPost("SecurityCode/NewPassowrd/Email")]
+        [HttpPost("SecurityCode/NewPassword/Email")]
         public async Task<object> RequestResetPasswordVerifyCodeAsync([FromServices]BTBaseDbContext dbContext, [FromServices]AccountService accountService, [FromServices]SecurityCodeService SecurityCodeService,
         string accountId, string email)
         {
@@ -183,18 +212,18 @@ namespace BTBaseWebAPI.Controllers.v1
 
         [Authorize]
         [HttpPost("SecurityCode/NewEmail/Email")]
-        public async Task<object> RequestResetEmailVerifyCodeAsync([FromServices]BTBaseDbContext dbContext, [FromServices]AccountService accountService, [FromServices]SecurityCodeService SecurityCodeService, string email)
+        public async Task<object> RequestResetEmailVerifyCodeAsync([FromServices]BTBaseDbContext dbContext, [FromServices]AccountService accountService, [FromServices]SecurityCodeService securityCodeService, string email)
         {
-            return await SendVerifyCodeByAliMailAsync(dbContext, accountService, SecurityCodeService, this.GetHeaderAccountId(), email, BTSecurityCode.REQ_FOR_RESET_EMAIL);
+            return await SendVerifyCodeByAliMailAsync(dbContext, accountService, securityCodeService, this.GetHeaderAccountId(), email, BTSecurityCode.REQ_FOR_RESET_EMAIL);
         }
 
         #region Send Verify Code
-        private async Task<object> SendVerifyCodeByAliMailAsync(BTBaseDbContext dbContext, AccountService accountService, SecurityCodeService SecurityCodeService, string accountId, string email, int reqType)
+        private async Task<object> SendVerifyCodeByAliMailAsync(BTBaseDbContext dbContext, AccountService accountService, SecurityCodeService securityCodeService, string accountId, string email, int reqType)
         {
             var account = accountService.GetProfile(dbContext, accountId);
             if (account != null && !string.IsNullOrWhiteSpace(account.Email) && account.Email.ToLower() == email.ToLower())
             {
-                var code = SecurityCodeService.RequestNewCode(dbContext, accountId, reqType, BTSecurityCode.REC_TYPE_EMAIL, email, TimeSpan.FromDays(1));
+                var code = securityCodeService.RequestNewCode(dbContext, accountId, reqType, BTSecurityCode.REC_TYPE_EMAIL, email, TimeSpan.FromDays(1));
                 var aliMailSenderInfo = new AliApilUtils.CommonReqFields
                 {
                     AccessKeyId = Environment.GetEnvironmentVariable("ALIYUN_DM_ACCESSKEY"),
@@ -202,7 +231,7 @@ namespace BTBaseWebAPI.Controllers.v1
                     AccesskeySecret = Environment.GetEnvironmentVariable("ALIYUN_DM_ACCESSKEY_SECRET"),
                 };
 
-                if (code != null && await SecurityCodeService.SendCodeAsync(code, aliMailSenderInfo))
+                if (code != null && await securityCodeService.SendCodeAsync(code, aliMailSenderInfo))
                 {
                     return new ApiResult
                     {
