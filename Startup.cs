@@ -32,7 +32,7 @@ namespace BTBaseWebAPI
             Configuration = configuration;
         }
 
-        public IConfiguration Configuration { get; }
+        public static IConfiguration Configuration { get; private set; }
         public IServiceCollection ServiceCollection { get; private set; }
         public IApplicationBuilder ApplicatonBuilder { get; private set; }
 

@@ -4,6 +4,11 @@ namespace BTBaseWebAPI.Controllers
 {
     public static class ServiceControllerExtensions
     {
+        public static string GetHeaderLangCode(this Controller controller)
+        {
+            return controller.Request.Headers["lang"];
+        }
+
         public static string GetHeaderAccountId(this Controller controller)
         {
             return controller.Request.Headers["accountId"];

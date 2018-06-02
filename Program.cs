@@ -28,6 +28,11 @@ namespace BTBaseWebAPI
                 config.AddJsonFile("hosting.json");
             }
 
+            if (File.Exists("email.template.json"))
+            {
+                config.AddJsonFile("email.template.json", true, true);
+            }
+
             return WebHost.CreateDefaultBuilder(args)
                 .UseConfiguration(config.Build())
                 .UseStartup<Startup>()

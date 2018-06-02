@@ -9,6 +9,8 @@ using BTBaseServices.Services;
 using BTBaseServices.Models;
 using Microsoft.AspNetCore.Authorization;
 using System.Net.Http;
+using System.Configuration;
+using Microsoft.Extensions.Configuration;
 
 namespace BTBaseWebAPI.Controllers.v1
 {
@@ -64,30 +66,42 @@ namespace BTBaseWebAPI.Controllers.v1
 
         private void SendWelcomeSignUpEmail(BTAccount newAccount)
         {
-            var mail = new AliApilUtils.AliMail
+            var section = Startup.Configuration.GetSection($"emailTemplates:signup_{this.GetHeaderLangCode()}");
+            if (!section.Exists())
             {
-                Action = "SingleSendMail",
-                AccountName = "admin@btbase.mobi",
-                ReplyToAddress = false,
-                AddressType = AliApilUtils.AliMail.ADDR_TYPE_ACCOUNT,
-                ToAddress = newAccount.Email,
-                FromAlias = "Bluetime",
-                Subject = "Thanks for sign up Bluetime Game Service",
-                HtmlBody = string.Format("<p>Account ID:{0}</p><p>Username:{1}</p><p>It is recommended that you keep this email to retrieve your account ID and username.</p>", newAccount.AccountId, newAccount.UserName),
-                ClickTrace = AliApilUtils.AliMail.CLICK_TRACE_OFF
-            };
+                section = Startup.Configuration.GetSection("emailTemplates:signup");
+            }
+            if (section.Exists())
+            {
+                var mail = new AliApilUtils.AliMail
+                {
+                    Action = "SingleSendMail",
+                    AccountName = section["account"],
+                    ReplyToAddress = false,
+                    AddressType = AliApilUtils.AliMail.ADDR_TYPE_ACCOUNT,
+                    ToAddress = newAccount.Email,
+                    FromAlias = section["alias"],
+                    Subject = section["subject"],
+                    HtmlBody = string.Format(section["htmlbody"], newAccount.AccountId, newAccount.UserName),
+                    ClickTrace = AliApilUtils.AliMail.CLICK_TRACE_OFF
+                };
 
-            var comFields = new AliApilUtils.CommonReqFields
-            {
-                AccessKeyId = Environment.GetEnvironmentVariable("ALIYUN_DM_ACCESSKEY"),
-                RegionId = Environment.GetEnvironmentVariable("ALIYUN_DM_REGION"),
-                AccesskeySecret = Environment.GetEnvironmentVariable("ALIYUN_DM_ACCESSKEY_SECRET"),
-            };
+                var comFields = new AliApilUtils.CommonReqFields
+                {
+                    AccessKeyId = Environment.GetEnvironmentVariable("ALIYUN_DM_ACCESSKEY"),
+                    RegionId = Environment.GetEnvironmentVariable("ALIYUN_DM_REGION"),
+                    AccesskeySecret = Environment.GetEnvironmentVariable("ALIYUN_DM_ACCESSKEY_SECRET"),
+                };
 
-            Task.Run(async () =>
+                Task.Run(async () =>
+                {
+                    await AliApilUtils.SendMailAsync(comFields, mail);
+                });
+            }
+            else
             {
-                await AliApilUtils.SendMailAsync(comFields, mail);
-            });
+                Console.WriteLine("No Email Template For Sign Up");
+            }
         }
 
         [Authorize]
@@ -223,27 +237,56 @@ namespace BTBaseWebAPI.Controllers.v1
             var account = accountService.GetProfile(dbContext, accountId);
             if (account != null && !string.IsNullOrWhiteSpace(account.Email) && account.Email.ToLower() == email.ToLower())
             {
-                var code = securityCodeService.RequestNewCode(dbContext, accountId, reqType, BTSecurityCode.REC_TYPE_EMAIL, email, TimeSpan.FromDays(1));
-                var aliMailSenderInfo = new AliApilUtils.CommonReqFields
+                var section = Startup.Configuration.GetSection($"emailTemplates:securityCode_{reqType}_{this.GetHeaderLangCode()}");
+                if (!section.Exists())
                 {
-                    AccessKeyId = Environment.GetEnvironmentVariable("ALIYUN_DM_ACCESSKEY"),
-                    RegionId = Environment.GetEnvironmentVariable("ALIYUN_DM_REGION"),
-                    AccesskeySecret = Environment.GetEnvironmentVariable("ALIYUN_DM_ACCESSKEY_SECRET"),
-                };
-
-                if (code != null && await securityCodeService.SendCodeAsync(code, aliMailSenderInfo))
+                    section = Startup.Configuration.GetSection("emailTemplates:securityCode_{reqType}");
+                }
+                if (section.Exists())
                 {
-                    return new ApiResult
+                    var code = securityCodeService.RequestNewCode(dbContext, accountId, reqType, BTSecurityCode.REC_TYPE_EMAIL, email, TimeSpan.FromDays(1));
+                    var mail = new AliApilUtils.AliMail
                     {
-                        code = this.SetResponseOK()
+                        Action = "SingleSendMail",
+                        AccountName = section["account"],
+                        ReplyToAddress = false,
+                        AddressType = AliApilUtils.AliMail.ADDR_TYPE_ACCOUNT,
+                        ToAddress = email,
+                        FromAlias = section["alias"],
+                        Subject = string.Format(section["subject"], code.Code),
+                        HtmlBody = string.Format(section["htmlbody"], code.Code, code.ExpiredOn.ToString()),
+                        ClickTrace = AliApilUtils.AliMail.CLICK_TRACE_OFF
                     };
+
+                    var reqFields = new AliApilUtils.CommonReqFields
+                    {
+                        AccessKeyId = Environment.GetEnvironmentVariable("ALIYUN_DM_ACCESSKEY"),
+                        RegionId = Environment.GetEnvironmentVariable("ALIYUN_DM_REGION"),
+                        AccesskeySecret = Environment.GetEnvironmentVariable("ALIYUN_DM_ACCESSKEY_SECRET"),
+                    };
+
+                    if (await AliApilUtils.SendMailAsync(reqFields, mail))
+                    {
+                        return new ApiResult
+                        {
+                            code = this.SetResponseOK()
+                        };
+                    }
+                    else
+                    {
+                        return new ApiResult
+                        {
+                            code = this.SetResponseServerError(),
+                            error = new ErrorResult { code = 500, msg = "Request Error" }
+                        };
+                    }
                 }
                 else
                 {
                     return new ApiResult
                     {
                         code = this.SetResponseServerError(),
-                        error = new ErrorResult { code = 500, msg = "Request Error" }
+                        error = new ErrorResult { code = 500, msg = "No Email Template" }
                     };
                 }
             }

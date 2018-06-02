@@ -1,0 +1,40 @@
+{
+    "emailTemplates": {
+        "signup": {
+            "account": "admin@btbase.mobi",
+            "alias": "Bluetime",
+            "subject": "Thanks for sign up Bluetime Game Service",
+            "htmlbody": "<p>Account ID:{0}</p><p>Username:{1}</p><p>It is recommended that you keep this email to retrieve your account ID and username.</p>"
+        },
+        "signup_zh_Hans": {
+            "account": "admin@btbase.mobi",
+            "alias": "Bluetime",
+            "subject": "欢迎使用Bluetime游戏服务",
+            "htmlbody": "<p>账号:{0}</p><p>用户名:{1}</p><p>建议保留这份邮件以便日后找回Bluetime游戏服务账号。</p>"
+        },
+        "securityCode_1": {
+            "account": "verification-code@btbase.mobi",
+            "alias": "no-reply",
+            "subject": "Security Code: {0}",
+            "htmlbody": "<p>Security Code:{0}</p><p>This code only use for reset password and expired on: {1}.</p>"
+        },
+        "securityCode_1_zh_Hans": {
+            "account": "verification-code@btbase.mobi",
+            "alias": "no-reply",
+            "subject": "验证码:{0}",
+            "htmlbody": "<p>验证码:{0}</p><p>本验证码只用于重置密码，验证码有效期:{1}。</p>"
+        },
+        "securityCode_2": {
+            "account": "verification-code@btbase.mobi",
+            "alias": "no-reply",
+            "subject": "Security Code: {0}",
+            "htmlbody": "<p>Security Code:{0}</p><p>This code only use for update email and expired on: {1}.</p>"
+        },
+        "securityCode_2_zh_Hans": {
+            "account": "verification-code@btbase.mobi",
+            "alias": "no-reply",
+            "subject": "验证码:{0}",
+            "htmlbody": "<p>验证码:{0}</p><p>本验证码只用于更换邮箱，验证码有效期:{1}。</p>"
+        }
+    }
+}
