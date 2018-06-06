@@ -150,7 +150,6 @@ namespace BTBaseWebAPI.Controllers.v1
             return new ApiResult
             {
                 code = updated ? this.SetResponseOK() : this.SetResponseNotFound(),
-                content = updated,
                 error = updated ? null : new ErrorResult { code = 400, msg = "No Account" }
             };
         }
@@ -163,7 +162,6 @@ namespace BTBaseWebAPI.Controllers.v1
             return new ApiResult
             {
                 code = updated ? this.SetResponseOK() : this.SetResponseForbidden(),
-                content = updated,
                 error = updated ? null : new ErrorResult { code = 403, msg = "Origin Password Not Match" }
             };
         }
@@ -178,7 +176,6 @@ namespace BTBaseWebAPI.Controllers.v1
                 return new ApiResult
                 {
                     code = updated ? this.SetResponseOK() : this.SetResponseNotFound(),
-                    content = updated,
                     error = updated ? null : new ErrorResult { code = 404, msg = "No Account" }
                 };
             }
@@ -210,7 +207,6 @@ namespace BTBaseWebAPI.Controllers.v1
                 return new ApiResult
                 {
                     code = updated ? this.SetResponseOK() : this.SetResponseNotFound(),
-                    content = updated,
                     error = updated ? null : new ErrorResult { code = 404, msg = "No Account" }
                 };
             }
