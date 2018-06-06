@@ -236,7 +236,7 @@ namespace BTBaseWebAPI.Controllers.v1
                 var section = Startup.Configuration.GetSection($"emailTemplates:securityCode_{reqType}_{this.GetHeaderLangCode()}");
                 if (!section.Exists())
                 {
-                    section = Startup.Configuration.GetSection("emailTemplates:securityCode_{reqType}");
+                    section = Startup.Configuration.GetSection($"emailTemplates:securityCode_{reqType}");
                 }
                 if (section.Exists())
                 {
