@@ -250,7 +250,7 @@ namespace BTBaseWebAPI.Controllers.v1
                         ToAddress = email,
                         FromAlias = section["alias"],
                         Subject = string.Format(section["subject"], code.Code),
-                        HtmlBody = string.Format(section["htmlbody"], code.Code, code.ExpiredOn.ToString()),
+                        HtmlBody = string.Format(section["htmlbody"], code.Code, code.Expires.ToString()),
                         ClickTrace = AliApilUtils.AliMail.CLICK_TRACE_OFF
                     };
 
