@@ -1,0 +1,6 @@
+ASPNETCORE_ENVIRONMENT="Production"
+MYSQL_CONSTR="server=localhost;database=xx;user=xx;password=xx;SslMode=none"
+ISSUER_SIGNING_KEY="xxx"
+ALIYUN_DM_ACCESSKEY="xxxx"
+ALIYUN_DM_REGION="cn-hangzhou"
+ALIYUN_DM_ACCESSKEY_SECRET="xx"
