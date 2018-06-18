@@ -2,15 +2,15 @@
     "emailTemplates": {
         "signup": {
             "account": "admin@btbase.mobi",
-            "alias": "Bluetime",
-            "subject": "Thanks for sign up Bluetime Game Service",
+            "alias": "GStudio",
+            "subject": "Thanks for sign up GStudio Game Service",
             "htmlbody": "<p>Account ID:{0}</p><p>Username:{1}</p><p>It is recommended that you keep this email to retrieve your account ID and username.</p>"
         },
         "signup_zh_Hans": {
             "account": "admin@btbase.mobi",
-            "alias": "Bluetime",
-            "subject": "欢迎使用Bluetime游戏服务",
-            "htmlbody": "<p>账号:{0}</p><p>用户名:{1}</p><p>建议保留这份邮件以便日后找回Bluetime游戏服务账号。</p>"
+            "alias": "GStudio",
+            "subject": "欢迎使用GStudio游戏服务",
+            "htmlbody": "<p>账号:{0}</p><p>用户名:{1}</p><p>建议保留这份邮件以便日后找回GStudio游戏服务账号。</p>"
         },
         "securityCode_1": {
             "account": "verification-code@btbase.mobi",
