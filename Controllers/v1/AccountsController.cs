@@ -17,9 +17,18 @@ namespace BTBaseWebAPI.Controllers.v1
     [Route("api/v1/[controller]")]
     public class AccountsController : Controller
     {
+        private readonly BTBaseDbContext dbContext;
+        private readonly AccountService accountService;
+
+        public AccountsController(BTBaseDbContext dbContext, AccountService accountService)
+        {
+            this.dbContext = dbContext;
+            this.accountService = accountService;
+        }
+
 
         [HttpPost]
-        public object Regist([FromServices]BTBaseDbContext dbContext, [FromServices]AccountService accountService, string username, string password, string email)
+        public object Regist(string username, string password, string email)
         {
             if (!CommonRegexTestUtil.TestPattern(username, CommonRegexTestUtil.PATTERN_USERNAME))
             {
@@ -106,7 +115,7 @@ namespace BTBaseWebAPI.Controllers.v1
 
         [Authorize]
         [HttpGet("Profile")]
-        public object GetAccountProfile([FromServices]BTBaseDbContext dbContext, [FromServices]AccountService accountService)
+        public object GetAccountProfile()
         {
             var ac = accountService.GetProfile(dbContext, this.GetHeaderAccountId());
             if (ac != null)
@@ -133,7 +142,7 @@ namespace BTBaseWebAPI.Controllers.v1
         }
 
         [HttpGet("Username/{username}")]
-        public object CheckUsernameExists([FromServices]BTBaseDbContext dbContext, [FromServices]AccountService accountService, string username)
+        public object CheckUsernameExists(string username)
         {
             var found = accountService.IsUsernameExists(dbContext, username);
             return new ApiResult
@@ -144,7 +153,7 @@ namespace BTBaseWebAPI.Controllers.v1
 
         [Authorize]
         [HttpPost("Nick")]
-        public object UpdateNickName([FromServices]BTBaseDbContext dbContext, [FromServices]AccountService accountService, string newNick)
+        public object UpdateNickName(string newNick)
         {
             var updated = accountService.UpdateNick(dbContext, this.GetHeaderAccountId(), newNick);
             return new ApiResult
@@ -156,7 +165,7 @@ namespace BTBaseWebAPI.Controllers.v1
 
         [Authorize]
         [HttpPost("Password")]
-        public object UpdatePassword([FromServices]BTBaseDbContext dbContext, [FromServices]AccountService accountService, string password, string newPassword)
+        public object UpdatePassword(string password, string newPassword)
         {
             var updated = accountService.UpdatePassword(dbContext, this.GetHeaderAccountId(), password, newPassword);
             return new ApiResult
@@ -167,8 +176,7 @@ namespace BTBaseWebAPI.Controllers.v1
         }
 
         [HttpPost("NewPassword")]
-        public object ResetPassword([FromServices]BTBaseDbContext dbContext, [FromServices]AccountService accountService, [FromServices]SecurityCodeService SecurityCodeService,
-        string securityCode, string accountId, string newPassword)
+        public object ResetPassword([FromServices]SecurityCodeService SecurityCodeService, string securityCode, string accountId, string newPassword)
         {
             if (SecurityCodeService.VerifyCode(dbContext, accountId, BTSecurityCode.REQ_FOR_RESET_PASSWORD, securityCode))
             {
@@ -190,16 +198,14 @@ namespace BTBaseWebAPI.Controllers.v1
         }
 
         [HttpPost("SecurityCode/NewPassword/Email")]
-        public async Task<object> RequestResetPasswordVerifyCodeAsync([FromServices]BTBaseDbContext dbContext, [FromServices]AccountService accountService, [FromServices]SecurityCodeService SecurityCodeService,
-        string accountId, string email)
+        public async Task<object> RequestResetPasswordVerifyCodeAsync([FromServices]SecurityCodeService SecurityCodeService, string accountId, string email)
         {
-            return await SendVerifyCodeByAliMailAsync(dbContext, accountService, SecurityCodeService, accountId, email, BTSecurityCode.REQ_FOR_RESET_PASSWORD);
+            return await SendVerifyCodeByAliMailAsync(SecurityCodeService, accountId, email, BTSecurityCode.REQ_FOR_RESET_PASSWORD);
         }
 
         [Authorize]
         [HttpPost("NewEmail")]
-        public object UpdateEmail([FromServices]BTBaseDbContext dbContext, [FromServices]AccountService accountService, [FromServices]SecurityCodeService SecurityCodeService,
-        string securityCode, string newEmail)
+        public object UpdateEmail([FromServices]SecurityCodeService SecurityCodeService, string securityCode, string newEmail)
         {
             if (SecurityCodeService.VerifyCode(dbContext, this.GetHeaderAccountId(), BTSecurityCode.REQ_FOR_RESET_EMAIL, securityCode))
             {
@@ -222,13 +228,13 @@ namespace BTBaseWebAPI.Controllers.v1
 
         [Authorize]
         [HttpPost("SecurityCode/NewEmail/Email")]
-        public async Task<object> RequestResetEmailVerifyCodeAsync([FromServices]BTBaseDbContext dbContext, [FromServices]AccountService accountService, [FromServices]SecurityCodeService securityCodeService, string email)
+        public async Task<object> RequestResetEmailVerifyCodeAsync([FromServices]SecurityCodeService securityCodeService, string email)
         {
-            return await SendVerifyCodeByAliMailAsync(dbContext, accountService, securityCodeService, this.GetHeaderAccountId(), email, BTSecurityCode.REQ_FOR_RESET_EMAIL);
+            return await SendVerifyCodeByAliMailAsync(securityCodeService, this.GetHeaderAccountId(), email, BTSecurityCode.REQ_FOR_RESET_EMAIL);
         }
 
         #region Send Verify Code
-        private async Task<object> SendVerifyCodeByAliMailAsync(BTBaseDbContext dbContext, AccountService accountService, SecurityCodeService securityCodeService, string accountId, string email, int reqType)
+        private async Task<object> SendVerifyCodeByAliMailAsync(SecurityCodeService securityCodeService, string accountId, string email, int reqType)
         {
             var account = accountService.GetProfile(dbContext, accountId);
             if (account != null && !string.IsNullOrWhiteSpace(account.Email) && account.Email.ToLower() == email.ToLower())

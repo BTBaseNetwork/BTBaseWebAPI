@@ -52,6 +52,7 @@ namespace BTBaseWebAPI
             services.AddSingleton<MemberService>();
             services.AddSingleton<SessionService>();
             services.AddSingleton<SecurityCodeService>();
+            services.AddSingleton<WalletService>();
             services.AddDbContextPool<BTBaseDbContext>(builder =>
             {
                 builder.UseMySQL(Environment.GetEnvironmentVariable("MYSQL_CONSTR"));
