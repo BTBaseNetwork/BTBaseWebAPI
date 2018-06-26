@@ -28,9 +28,12 @@ namespace BTBaseWebAPI.Controllers
             var ts = TimeSpan.FromHours(now.Hour) + TimeSpan.FromMinutes(now.Minute) + TimeSpan.FromSeconds(now.Second);
 
             var onlineSession = sessionService.OnlineSessions(dbContext, ts);
+
+            var todayNewAccount = accountService.CountNewAccount(dbContext, now - ts, now);
             return new
             {
                 TotalAccounts = accountCount,
+                TodayRegisters = todayNewAccount,
                 TodayOnline = onlineSession
             };
         }
