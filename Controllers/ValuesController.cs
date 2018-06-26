@@ -29,12 +29,18 @@ namespace BTBaseWebAPI.Controllers
 
             var onlineSession = sessionService.OnlineSessions(dbContext, ts);
 
-            var todayNewAccount = accountService.CountNewAccount(dbContext, now - ts, now);
+            var startDate = now - ts;
+
+            var todayNewAccount = accountService.CountNewAccount(dbContext, startDate, now);
+
+            var todayIAP = dbContext.AppleStoreIAPOrder.Count(x => x.SandBox == false && x.Date >= startDate && x.Date <= now);
+
             return new
             {
                 TotalAccounts = accountCount,
                 TodayRegisters = todayNewAccount,
-                TodayOnline = onlineSession
+                TodayOnline = onlineSession,
+                TodayIAP = todayIAP
             };
         }
     }

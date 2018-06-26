@@ -71,7 +71,8 @@ namespace BTBaseWebAPI.Controllers.v1
                     AccountId = accountId,
                     ProductId = verifyRes.MatchedProductId,
                     ReceiptData = verifyRes.ReceiptData,
-                    Date = DateTime.Now
+                    Date = DateTime.Now,
+                    SandBox = verifyRes.IsSandBox
                 };
 
                 if (AppleStoreIAPManager.IsAppleStoreOrderExists(dbContext, order))
