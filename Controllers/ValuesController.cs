@@ -15,5 +15,24 @@ namespace BTBaseWebAPI.Controllers
         {
             return "BTBase Web API Service";
         }
+
+        // GET api/values/status
+        [HttpGet("Status")]
+        public object GetStatus([FromServices]BTBaseServices.DAL.BTBaseDbContext dbContext,
+         [FromServices]BTBaseServices.Services.AccountService accountService,
+         [FromServices]BTBaseServices.Services.SessionService sessionService)
+        {
+            var accountCount = accountService.CountAccount(dbContext);
+            var now = DateTime.Now;
+
+            var ts = TimeSpan.FromHours(now.Hour) + TimeSpan.FromMinutes(now.Minute) + TimeSpan.FromSeconds(now.Second);
+
+            var onlineSession = sessionService.OnlineSessions(dbContext, ts);
+            return new
+            {
+                TotalAccounts = accountCount,
+                TodayOnline = onlineSession
+            };
+        }
     }
 }
