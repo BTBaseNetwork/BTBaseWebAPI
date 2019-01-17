@@ -24,6 +24,11 @@ namespace BTBaseWebAPI.Controllers
             return controller.Request.Headers["clientId"];
         }
 
+        public static string GetHeaderAppBundleId(this Controller controller)
+        {
+            return controller.Request.Headers["appBundleId"];
+        }
+
         public static string GetHeaderSession(this Controller controller)
         {
             return controller.Request.Headers["session"];
