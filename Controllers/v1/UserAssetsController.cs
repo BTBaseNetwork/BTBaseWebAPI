@@ -44,10 +44,10 @@ namespace BTBaseWebAPI.Controllers.v1
         }
 
         [Authorize]
-        [HttpGet("AssetsType/{assetsType}")]
-        public object GetAssets(string assetsType)
+        [HttpGet("Category/{category}")]
+        public object GetAssets(string category)
         {
-            var content = userAssetService.GetAssetsByCategory(dbContext, this.GetHeaderAccountId(), this.GetHeaderAppBundleId(), assetsType);
+            var content = userAssetService.GetAssetsByCategory(dbContext, this.GetHeaderAccountId(), this.GetHeaderAppBundleId(), category);
             return new ApiResult
             {
                 code = 200,
